@@ -5,7 +5,8 @@ import { ElMessage } from 'element-plus';
 import MainPage from '../views/MainPage/MainPage.vue'
 import Login from '../views/Login/Login.vue'
 import Register from '../views/Register/Register.vue'
-import Discover from '../views/Discover/Discover.vue'
+import Discover from '../views/Discover/Discover.vue';
+import Playlist from '../views/Playlist/Playlist.vue';
 
 const routes = [
   {
@@ -27,6 +28,11 @@ const routes = [
     path: '/Discover',
     name: 'Discover',
     component: Discover,
+  },
+  {
+    path: '/Playlist',
+    name: 'Playlist',
+    component: Playlist,
   },
 ]
 
