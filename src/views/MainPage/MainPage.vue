@@ -1,6 +1,7 @@
 <template>
   <div class="music-app" :class="theme">
     <!-- 顶部导航栏 -->
+    <!-- 顶部导航栏 -->
     <header class="header">
       <div class="header-content">
         <h1 class="logo">Music<span>Hub</span></h1>
@@ -21,9 +22,16 @@
             <i :class="theme === 'dark' ? 'icon-sun' : 'icon-moon'"></i>
             {{ theme === 'dark' ? '亮色模式' : '暗色模式' }}
           </button>
-          <button class="user-button">
-            <i class="icon-user"></i>
-          </button>
+          <div class="user-dropdown">
+            <button class="user-button">
+              <i class="icon-user"></i>
+            </button>
+            <div class="dropdown-menu">
+              <button class="dropdown-item" @click="logout">
+                <i class="icon-logout"></i> 退出登录
+              </button>
+            </div>
+          </div>
         </div>
       </div>
     </header>
@@ -160,7 +168,9 @@
 <script setup lang="ts">
 import { inject } from 'vue'
 import { ThemeSymbol } from '../../theme-context'
+import { useRouter } from 'vue-router'
 
+const router = useRouter()
 const themeContext = inject(ThemeSymbol)
 
 if (!themeContext) {
@@ -168,6 +178,22 @@ if (!themeContext) {
 }
 
 const { theme, toggleTheme } = themeContext
+
+
+
+const logout = () => {
+  // 清除本地存储中的 token
+  localStorage.removeItem('token');
+
+  // 跳转到登录页面
+  router.push('/login');
+
+  // 可选：输出日志或提示用户已退出
+  console.log('用户已退出登录');
+
+  // 你还可以添加一些其他操作，例如清除全局状态（如 Vuex 中的用户数据）
+};
+
 </script>
 
 <style scoped>
@@ -743,5 +769,70 @@ const { theme, toggleTheme } = themeContext
 
 .icon-list::before {
   content: "📋";
+}
+
+
+/* 新增的样式 */
+.user-dropdown {
+  position: relative;
+  display: inline-block;
+}
+
+.user-button {
+  background-color: transparent;
+  color: var(--text-color);
+  border: none;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.user-button:hover {
+  background-color: var(--hover-bg);
+}
+
+.dropdown-menu {
+  position: absolute;
+  right: 0;
+  top: 100%;
+  background-color: var(--card-bg);
+  border-radius: 8px;
+  box-shadow: 0 4px 12px var(--shadow-color);
+  min-width: 160px;
+  z-index: 100;
+  display: none;
+  padding: 0.5rem 0;
+}
+
+.user-dropdown:hover .dropdown-menu {
+  display: block;
+}
+
+.dropdown-item {
+  width: 100%;
+  padding: 0.8rem 1rem;
+  background: none;
+  border: none;
+  text-align: left;
+  color: var(--text-color);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.9rem;
+}
+
+.dropdown-item:hover {
+  background-color: var(--hover-bg);
+}
+
+/* 图标样式 */
+.icon-logout::before {
+  content: "🚪";
 }
 </style>
