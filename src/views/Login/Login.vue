@@ -72,6 +72,7 @@ import { inject } from 'vue'
 import { ThemeSymbol } from '../../theme-context'
 import { loginApi } from '../../api/authService'
 import { ElMessage } from 'element-plus'
+import config from '../../api/config.js';
 const router = useRouter()
 
 const themeContext = inject(ThemeSymbol)
@@ -130,17 +131,21 @@ const handleLogin = async () => {
 
     // 人为延迟 1 秒用于加载体验
     await new Promise(resolve => setTimeout(resolve, 1000));
-    console.log(result);
 
     if (result.success) {
-      // 保存 token 到 localStorage
+      // 保存 token 和用户信息到 localStorage
       localStorage.setItem('token', result.token);
+      localStorage.setItem('user', JSON.stringify(result.user));
+
+      // 保存 API_BASE_URL 到 localStorage（如果你有需要在别处读取）
+      localStorage.setItem('API_BASE_URL', config.API_BASE_URL);
 
       ElMessage.success(result.message || '登录成功');
       router.push('/');
     } else {
       ElMessage.error(result.message || '登录失败');
     }
+
   } catch (err) {
     ElMessage.error('登录出错，请稍后再试');
     console.error(err);

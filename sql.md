@@ -26,6 +26,44 @@ CREATE TABLE users (
 
 ---
 
+### ✅ `user_profiles` 用户详细信息表
+
+```sql
+CREATE TABLE user_profiles (
+    profile_id INT PRIMARY KEY AUTO_INCREMENT,        -- 主键，自增
+    user_id INT NOT NULL,                             -- 外键，关联 users 表
+    nickname VARCHAR(50),                             -- 昵称
+    gender ENUM('male', 'female', 'other') DEFAULT 'other',  -- 性别
+    birthday DATE,                                     -- 生日
+    bio TEXT,                                          -- 个性签名/简介
+    phone VARCHAR(20),                                 -- 手机号
+    address VARCHAR(255),                              -- 地址
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,     -- 创建时间
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP, -- 更新时间
+
+    FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE
+);
+```
+
+---
+
+### 📘 字段说明
+
+| 字段名       | 类型/约束                         | 描述                        |
+| ------------ | --------------------------------- | --------------------------- |
+| `profile_id` | `INT PRIMARY KEY AUTO_INCREMENT`  | 唯一标识该记录              |
+| `user_id`    | `INT`，`FOREIGN KEY`              | 关联 `users` 表的 `user_id` |
+| `nickname`   | `VARCHAR(50)`                     | 用户昵称（可修改）          |
+| `gender`     | `ENUM('male', 'female', 'other')` | 性别（使用枚举类型）        |
+| `birthday`   | `DATE`                            | 生日                        |
+| `bio`        | `TEXT`                            | 简介/个性签名               |
+| `phone`      | `VARCHAR(20)`                     | 联系电话（可选）            |
+| `address`    | `VARCHAR(255)`                    | 地址（可选）                |
+| `created_at` | `DATETIME`                        | 创建时间                    |
+| `updated_at` | `DATETIME` ON UPDATE 自动更新时间 | 最近一次更新时间            |
+
+---
+
 ### `user_levels` 用户等级表
 
 ```sql

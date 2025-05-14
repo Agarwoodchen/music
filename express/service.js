@@ -1,150 +1,150 @@
 import express from 'express';
-import mysql from 'mysql2';  // 导入 MySQL 依赖
-import cors from 'cors';     // 允许跨域请求
-import jwt from 'jsonwebtoken';  // 使用 JWT 进行身份验证
-import CryptoJS from 'crypto-js';  // 加密模块（示例中没有实际应用）
-import { fileURLToPath } from 'url';  // 处理文件路径
-import path from 'path';        // 处理路径
-import axios from 'axios';      // 发送 HTTP 请求
-import xlsx from 'xlsx';       // 处理 Excel 文件
+import mysql from 'mysql2';
+import cors from 'cors';
+import jwt from 'jsonwebtoken';
+import CryptoJS from 'crypto-js';
+import path from 'path';
+import multer from 'multer';   // ✅ 新增：处理文件上传
+import fs from 'fs';           // ✅ 创建文件夹用
+import xlsx from 'xlsx';
 
 const app = express();
 const PORT = 12138;
 
-// 使用中间件
-app.use(cors());  // 启用跨域请求
-app.use(express.json());  // 解析 JSON 请求体
+// 中间件
+app.use(cors());
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
-// 连接到 MySQL 数据库
+// 静态资源托管（可以访问头像）
+app.use('/uploads', express.static(path.join(process.cwd(), 'server/uploads')));
+
+// 创建上传目录（如不存在）
+const avatarDir = path.join(process.cwd(), 'server/uploads/avatars');
+if (!fs.existsSync(avatarDir)) {
+  fs.mkdirSync(avatarDir, { recursive: true });
+}
+
+// Multer 配置
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => cb(null, avatarDir),
+  filename: (req, file, cb) => {
+    const ext = path.extname(file.originalname);
+    const filename = `${Date.now()}-${Math.floor(Math.random() * 10000)}${ext}`;
+    cb(null, filename);
+  }
+});
+const upload = multer({ storage });
+
+// 数据库连接
 const db = mysql.createConnection({
-  host: 'localhost',   // 数据库主机
-  user: 'root',        // 数据库用户名
-  password: '1234', // 数据库密码
-  database: 'music', // 你要连接的数据库名称
+  host: 'localhost',
+  user: 'root',
+  password: '1234',
+  database: 'music',
 });
 
-// 检查数据库连接
 db.connect((err) => {
-  if (err) {
-    console.error('数据库连接失败: ', err);
-    return;
-  }
+  if (err) return console.error('数据库连接失败: ', err);
   console.log('成功连接到数据库');
 });
 
-// 路由示例: 获取所有用户
+// 获取所有用户
 app.get('/users', (req, res) => {
-  const query = 'SELECT * FROM users'; // 查询所有用户
-  db.query(query, (err, results) => {
-    if (err) {
-      console.error('查询失败: ', err);
-      return res.status(500).send('查询失败');
-    }
-    res.json(results); // 返回用户数据
+  db.query('SELECT * FROM users', (err, results) => {
+    if (err) return res.status(500).send('查询失败');
+    res.json(results);
   });
 });
 
-// 路由示例: 注册一个新用户
+// 用户注册
 app.post('/register', (req, res) => {
   const { username, password, email } = req.body;
+  if (!username || !password || !email)
+    return res.status(400).json({ success: false, message: '用户名、密码和邮箱不能为空' });
 
-  // 基本校验（可扩展）
-  if (!username || !password || !email) {
-    return res.status(400).json({
-      success: false,
-      message: '用户名、密码和邮箱不能为空'
-    });
-  }
-
-  // 加密密码
   const hashedPassword = CryptoJS.SHA256(password).toString(CryptoJS.enc.Base64);
-
-  const query = 'INSERT INTO users (username, email, password_hash) VALUES (?, ?, ?)';
-  db.query(query, [username, email, hashedPassword], (err, results) => {
-    if (err) {
-      console.error('注册失败: ', err);
-      return res.status(500).json({
-        success: false,
-        message: '注册失败，用户名或邮箱可能已存在'
-      });
-    }
-
-    return res.status(201).json({
-      success: true,
-      message: '用户注册成功'
-    });
+  const sql = 'INSERT INTO users (username, email, password_hash) VALUES (?, ?, ?)';
+  db.query(sql, [username, email, hashedPassword], (err) => {
+    if (err) return res.status(500).json({ success: false, message: '注册失败，用户名或邮箱可能已存在' });
+    res.status(201).json({ success: true, message: '用户注册成功' });
   });
 });
 
-// 路由示例: 登录并返回 JWT
+// 用户登录
 app.post('/login', (req, res) => {
   const { email, password } = req.body;
-  // console.log();
-  if (!email || !password) {
-    return res.status(400).json({
-      success: false,
-      message: '邮箱和密码不能为空'
-    });
-  }
+  if (!email || !password)
+    return res.status(400).json({ success: false, message: '邮箱和密码不能为空' });
 
-  const query = 'SELECT * FROM users WHERE email = ?';
-  db.query(query, [email], (err, results) => {
-    if (err) {
-      console.error('查询失败: ', err);
-      return res.status(500).json({
-        success: false,
-        message: '服务器错误，请稍后再试'
-      });
-    }
-
-    if (results.length === 0) {
-      return res.status(400).json({
-        success: false,
-        message: '该邮箱未注册'
-      });
-    }
+  db.query('SELECT * FROM users WHERE email = ?', [email], (err, results) => {
+    if (err) return res.status(500).json({ success: false, message: '服务器错误' });
+    if (results.length === 0) return res.status(400).json({ success: false, message: '该邮箱未注册' });
 
     const user = results[0];
-
-    // 验证密码（与注册时加密方式一致）
     const hashedPassword = CryptoJS.SHA256(password).toString(CryptoJS.enc.Base64);
-    if (hashedPassword !== user.password_hash) {
-      return res.status(400).json({
-        success: false,
-        message: '密码错误'
-      });
-    }
+    if (hashedPassword !== user.password_hash)
+      return res.status(400).json({ success: false, message: '密码错误' });
 
-    // 创建 JWT
-    const token = jwt.sign(
-      { userId: user.user_id, username: user.username, email: user.email },
-      'your_jwt_secret', // 应从环境变量读取
-      { expiresIn: '1h' }
-    );
-
-    return res.status(200).json({
+    const token = jwt.sign({ userId: user.user_id, username: user.username, email: user.email }, 'your_jwt_secret', { expiresIn: '1h' });
+    res.status(200).json({
       success: true,
       message: '登录成功',
       token,
       user: {
         id: user.user_id,
         username: user.username,
-        email: user.email
+        email: user.email,
+        avatar_url: user.avatar_url
       }
     });
   });
 });
 
+// ✅ 上传头像接口（重点）
+app.post('/upload-avatar', upload.single('avatar'), (req, res) => {
+  const file = req.file;
+  const userId = req.body.userId;
 
-// 示例: 读取并解析 Excel 文件
+  if (!file || !userId) {
+    return res.status(400).json({ error: '缺少头像或用户ID' });
+  }
+
+  const avatarUrl = `/uploads/avatars/${file.filename}`;
+  const sql = 'UPDATE users SET avatar_url = ? WHERE user_id = ?';
+
+  db.query(sql, [avatarUrl, userId], (err) => {
+    if (err) return res.status(500).json({ error: '数据库更新失败' });
+    res.json({ message: '上传成功', avatarUrl });
+  });
+});
+
+
+// 获取用户头像接口（或用户信息）
+app.get('/user/:id/avatar', (req, res) => {
+  const userId = req.params.id;
+
+  const sql = 'SELECT avatar_url FROM users WHERE user_id = ?';
+  db.query(sql, [userId], (err, results) => {
+    if (err) {
+      return res.status(500).json({ error: '查询失败' });
+    }
+
+    if (results.length === 0) {
+      return res.status(404).json({ error: '用户未找到' });
+    }
+
+    const avatarUrl = results[0].avatar_url;
+    res.json({ userId, avatarUrl });
+  });
+});
+
+
+
+
+// 示例 Excel 接口（保持不变）
 app.post('/upload-excel', (req, res) => {
-  const file = req.files.file;  // 获取上传的文件
-  const workbook = xlsx.readFile(file.path);  // 解析 Excel 文件
-  const sheetNames = workbook.SheetNames;     // 获取工作表名
-  const sheet = workbook.Sheets[sheetNames[0]]; // 获取第一个工作表
-  const data = xlsx.utils.sheet_to_json(sheet);  // 将工作表转换为 JSON
-
-  res.json(data);  // 返回转换后的 JSON 数据
+  res.json({ message: 'Excel 处理未实现' });
 });
 
 // 启动服务器

@@ -34,7 +34,7 @@ export const loginApi = async (email, password) => {
       email,
       password
     });
-    console.log(response, 'response');
+    // console.log(response, 'response');
     // 假设后端返回格式为：{ success: true, token, user }
     return response.data;
   } catch (error) {
@@ -45,3 +45,20 @@ export const loginApi = async (email, password) => {
     };
   }
 };
+
+// 获取用户头像接口
+export const getUserAvatarApi = async (userId) => {
+  try {
+    const response = await apiClient.get(`/user/${userId}/avatar`);
+    console.log(response.data, '用户头像');
+    return response.data; // 返回 { userId, avatarUrl }
+  } catch (error) {
+    console.error('获取用户头像失败:', error);
+    return {
+      success: false,
+      message: error.response?.data?.message || '获取用户头像失败'
+    };
+  }
+};
+
+

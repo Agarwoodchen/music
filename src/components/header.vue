@@ -22,9 +22,11 @@
           {{ theme === 'dark' ? '亮色模式' : '暗色模式' }}
         </button>
         <div class="user-dropdown">
-          <button class="user-button">
-            <i class="icon-user"></i>
-          </button>
+          <router-link to="Mine">
+            <button class="user-button">
+              <i class="icon-user"></i>
+            </button>
+          </router-link>
           <div class="dropdown-menu">
             <button class="dropdown-item" @click="logout">
               <i class="icon-logout"></i> 退出登录

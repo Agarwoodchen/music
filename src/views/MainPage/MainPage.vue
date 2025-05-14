@@ -170,11 +170,11 @@
 </template>
 
 <script setup lang="ts">
-import { inject } from 'vue'
+import { inject, onMounted } from 'vue'
 import { ThemeSymbol } from '../../theme-context'
 import { useRouter } from 'vue-router'
 import Header from '../../components/header.vue'
-
+import config from '../../api/config.js';
 
 
 const router = useRouter()
@@ -200,6 +200,31 @@ const logout = () => {
 
   // 你还可以添加一些其他操作，例如清除全局状态（如 Vuex 中的用户数据）
 };
+
+onMounted(() => {
+  try {
+    const userJson = localStorage.getItem('user');
+    const user = userJson ? JSON.parse(userJson) : null;
+
+    if (user) {
+      console.log('当前登录用户:', user);
+    } else {
+      console.warn('未找到登录用户信息');
+    }
+
+    const apiBaseUrl = localStorage.getItem('API_BASE_URL');
+    if (apiBaseUrl) {
+      console.log('API 地址:', apiBaseUrl);
+    } else {
+      console.warn('API 地址未设置');
+    }
+
+  } catch (error) {
+    console.error('读取 localStorage 时出错:', error);
+  }
+});
+
+
 
 </script>
 

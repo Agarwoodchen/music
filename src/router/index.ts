@@ -11,6 +11,7 @@ import Rank from '../views/Rank/Rank.vue';
 import Artists from '../views/Artists/Artists.vue';
 import PlayMusci from '../views/PlayMusci/PlayMusci.vue';
 import SongDetailPage from '../views/SongDetailPage/SongDetailPage.vue';
+import Mine from '../views/Mine/Mine.vue';
 
 const routes = [
   {
@@ -57,6 +58,11 @@ const routes = [
     path: '/SongDetailPage',
     name: 'SongDetailPage',
     component: SongDetailPage,
+  },
+  {
+    path: '/Mine',
+    name: 'Mine',
+    component: Mine,
   },
 ]
 
