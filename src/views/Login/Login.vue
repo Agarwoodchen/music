@@ -55,12 +55,12 @@
         </div>
       </div>
 
-      <div class="auth-theme-toggle">
+      <!-- <div class="auth-theme-toggle">
         <button @click="toggleTheme" class="theme-button">
           <i :class="theme === 'dark' ? 'icon-sun' : 'icon-moon'"></i>
           {{ theme === 'dark' ? '亮色模式' : '暗色模式' }}
         </button>
-      </div>
+      </div> -->
     </div>
   </div>
 </template>
