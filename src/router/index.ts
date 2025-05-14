@@ -10,6 +10,7 @@ import Playlist from '../views/Playlist/Playlist.vue';
 import Rank from '../views/Rank/Rank.vue';
 import Artists from '../views/Artists/Artists.vue';
 import PlayMusci from '../views/PlayMusci/PlayMusci.vue';
+import SongDetailPage from '../views/SongDetailPage/SongDetailPage.vue';
 
 const routes = [
   {
@@ -51,6 +52,11 @@ const routes = [
     path: '/PlayMusci',
     name: 'PlayMusci',
     component: PlayMusci,
+  },
+  {
+    path: '/SongDetailPage',
+    name: 'SongDetailPage',
+    component: SongDetailPage,
   },
 ]
 
