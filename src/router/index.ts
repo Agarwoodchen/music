@@ -8,6 +8,7 @@ import Register from '../views/Register/Register.vue'
 import Discover from '../views/Discover/Discover.vue';
 import Playlist from '../views/Playlist/Playlist.vue';
 import Rank from '../views/Rank/Rank.vue';
+import Artists from '../views/Artists/Artists.vue';
 
 const routes = [
   {
@@ -39,6 +40,11 @@ const routes = [
     path: '/Rank',
     name: 'Rank',
     component: Rank,
+  },
+  {
+    path: '/Artists',
+    name: 'Artists',
+    component: Artists,
   },
 ]
 
