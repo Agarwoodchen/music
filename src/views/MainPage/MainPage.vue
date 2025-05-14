@@ -110,9 +110,11 @@
     <footer class="player-bar">
       <div class="player-content">
         <div class="now-playing">
-          <div class="now-playing-cover">
-            <img src="https://picsum.photos/60/60?random=100" alt="当前播放封面">
-          </div>
+          <router-link to="/PlayMusci">
+            <div class="now-playing-cover">
+              <img src="https://picsum.photos/60/60?random=100" alt="当前播放封面" />
+            </div>
+          </router-link>
           <div class="now-playing-info">
             <h3 class="now-playing-title">当前播放歌曲</h3>
             <p class="now-playing-artist">当前播放歌手</p>
