@@ -46,50 +46,95 @@ app.get('/users', (req, res) => {
 
 // 路由示例: 注册一个新用户
 app.post('/register', (req, res) => {
-  const { username, password } = req.body;
+  const { username, password, email } = req.body;
 
-  // 加密密码（使用 CryptoJS）
+  // 基本校验（可扩展）
+  if (!username || !password || !email) {
+    return res.status(400).json({
+      success: false,
+      message: '用户名、密码和邮箱不能为空'
+    });
+  }
+
+  // 加密密码
   const hashedPassword = CryptoJS.SHA256(password).toString(CryptoJS.enc.Base64);
 
-  const query = 'INSERT INTO users (username, password_hash) VALUES (?, ?)';
-  db.query(query, [username, hashedPassword], (err, results) => {
+  const query = 'INSERT INTO users (username, email, password_hash) VALUES (?, ?, ?)';
+  db.query(query, [username, email, hashedPassword], (err, results) => {
     if (err) {
       console.error('注册失败: ', err);
-      return res.status(500).send('注册失败');
+      return res.status(500).json({
+        success: false,
+        message: '注册失败，用户名或邮箱可能已存在'
+      });
     }
-    res.status(201).send('用户注册成功');
+
+    return res.status(201).json({
+      success: true,
+      message: '用户注册成功'
+    });
   });
 });
 
 // 路由示例: 登录并返回 JWT
 app.post('/login', (req, res) => {
-  const { username, password } = req.body;
+  const { email, password } = req.body;
+  // console.log();
+  if (!email || !password) {
+    return res.status(400).json({
+      success: false,
+      message: '邮箱和密码不能为空'
+    });
+  }
 
-  const query = 'SELECT * FROM users WHERE username = ?';
-  db.query(query, [username], (err, results) => {
+  const query = 'SELECT * FROM users WHERE email = ?';
+  db.query(query, [email], (err, results) => {
     if (err) {
       console.error('查询失败: ', err);
-      return res.status(500).send('查询失败');
+      return res.status(500).json({
+        success: false,
+        message: '服务器错误，请稍后再试'
+      });
     }
 
     if (results.length === 0) {
-      return res.status(400).send('用户不存在');
+      return res.status(400).json({
+        success: false,
+        message: '该邮箱未注册'
+      });
     }
 
     const user = results[0];
 
-    // 验证密码（假设密码是经过 SHA256 加密的）
+    // 验证密码（与注册时加密方式一致）
     const hashedPassword = CryptoJS.SHA256(password).toString(CryptoJS.enc.Base64);
     if (hashedPassword !== user.password_hash) {
-      return res.status(400).send('密码错误');
+      return res.status(400).json({
+        success: false,
+        message: '密码错误'
+      });
     }
 
-    // 创建 JWT 令牌
-    const token = jwt.sign({ userId: user.user_id, username: user.username }, 'your_jwt_secret', { expiresIn: '1h' });
+    // 创建 JWT
+    const token = jwt.sign(
+      { userId: user.user_id, username: user.username, email: user.email },
+      'your_jwt_secret', // 应从环境变量读取
+      { expiresIn: '1h' }
+    );
 
-    res.json({ token });
+    return res.status(200).json({
+      success: true,
+      message: '登录成功',
+      token,
+      user: {
+        id: user.user_id,
+        username: user.username,
+        email: user.email
+      }
+    });
   });
 });
+
 
 // 示例: 读取并解析 Excel 文件
 app.post('/upload-excel', (req, res) => {

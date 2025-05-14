@@ -70,7 +70,8 @@ import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { inject } from 'vue'
 import { ThemeSymbol } from '../../theme-context'
-
+import { loginApi } from '../../api/authService'
+import { ElMessage } from 'element-plus'
 const router = useRouter()
 
 const themeContext = inject(ThemeSymbol)
@@ -80,8 +81,8 @@ if (!themeContext) {
 const { theme, toggleTheme } = themeContext
 
 const loginForm = ref({
-  email: '',
-  password: '',
+  email: '26689@163.com',
+  password: '123456',
   remember: false
 })
 
@@ -116,16 +117,36 @@ const validateLoginForm = () => {
   return isValid
 }
 
-const handleLogin = () => {
-  if (!validateLoginForm()) return
+const handleLogin = async () => {
+  if (!validateLoginForm()) return;
 
-  loginLoading.value = true
+  loginLoading.value = true;
 
-  // 模拟登录API调用
-  setTimeout(() => {
-    loginLoading.value = false
-    router.push('/')
-  }, 1500)
+  const email = loginForm.value.email;
+  const password = loginForm.value.password;
+
+  try {
+    const result = await loginApi(email, password);
+
+    // 人为延迟 1 秒用于加载体验
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    console.log(result);
+
+    if (result.success) {
+      // 保存 token 到 localStorage
+      localStorage.setItem('token', result.token);
+
+      ElMessage.success(result.message || '登录成功');
+      router.push('/');
+    } else {
+      ElMessage.error(result.message || '登录失败');
+    }
+  } catch (err) {
+    ElMessage.error('登录出错，请稍后再试');
+    console.error(err);
+  } finally {
+    loginLoading.value = false;
+  }
 }
 </script>
 

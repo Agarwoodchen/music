@@ -90,6 +90,9 @@ import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { inject } from 'vue'
 import { ThemeSymbol } from '../../theme-context'
+import { register } from '../../api/authService.js'
+import { ElMessage } from 'element-plus'
+
 
 const router = useRouter()
 
@@ -174,17 +177,37 @@ const validateRegisterForm = () => {
   return isValid
 }
 
-const handleRegister = () => {
-  if (!validateRegisterForm()) return
+const handleRegister = async () => {
+  if (!validateRegisterForm()) return;
 
-  registerLoading.value = true
+  registerLoading.value = true;
 
-  // 模拟注册API调用
-  setTimeout(() => {
-    registerLoading.value = false
-    router.push('/login')
-  }, 1500)
-}
+  const username = registerForm.value.username;
+  const email = registerForm.value.email;
+  const password = registerForm.value.password;
+
+  try {
+    const result = await register(username, email, password);
+
+    // 延迟 1 秒
+    await new Promise(resolve => setTimeout(resolve, 1000));
+
+    console.log(result);
+
+    if (result.success) {
+      ElMessage.success(result.message || '注册成功');
+      router.push('/login');
+    } else {
+      ElMessage.error(result.message || '注册失败');
+    }
+  } catch (err) {
+    ElMessage.error('注册出错，请稍后再试');
+    console.error(err);
+  } finally {
+    registerLoading.value = false;
+  }
+};
+
 </script>
 
 <style scoped>
