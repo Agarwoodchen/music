@@ -2,7 +2,8 @@
   <div class="music-app" :class="theme">
     <!-- 顶部导航栏 -->
     <!-- 顶部导航栏 -->
-    <header class="header">
+    <Header />
+    <!-- <header class="header">
       <div class="header-content">
         <h1 class="logo">Music<span>Hub</span></h1>
         <div class="search-bar">
@@ -12,7 +13,8 @@
           </button>
         </div>
         <nav class="nav-links">
-          <a href="#">发现</a>
+         
+          <router-link to="Discover" class="discover">发现</router-link>
           <a href="#">歌单</a>
           <a href="#">排行榜</a>
           <a href="#">歌手</a>
@@ -34,7 +36,7 @@
           </div>
         </div>
       </div>
-    </header>
+    </header> -->
 
     <!-- 主要内容区 -->
     <main class="main-content">
@@ -169,6 +171,9 @@
 import { inject } from 'vue'
 import { ThemeSymbol } from '../../theme-context'
 import { useRouter } from 'vue-router'
+import Header from '../../components/header.vue'
+
+
 
 const router = useRouter()
 const themeContext = inject(ThemeSymbol)

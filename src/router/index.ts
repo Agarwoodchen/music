@@ -1,8 +1,11 @@
 import { createRouter, createWebHistory } from 'vue-router'
+import { ElMessage } from 'element-plus';
+
+
 import MainPage from '../views/MainPage/MainPage.vue'
 import Login from '../views/Login/Login.vue'
 import Register from '../views/Register/Register.vue'
-import { ElMessage } from 'element-plus';
+import Discover from '../views/Discover/Discover.vue'
 
 const routes = [
   {
@@ -19,6 +22,11 @@ const routes = [
     path: '/Register',
     name: 'Register',
     component: Register,
+  },
+  {
+    path: '/Discover',
+    name: 'Discover',
+    component: Discover,
   },
 ]
 
