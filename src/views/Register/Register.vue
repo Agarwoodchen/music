@@ -196,7 +196,7 @@ const handleRegister = () => {
   background-color: var(--bg-color);
   color: var(--text-color);
   transition: background-color 0.3s, color 0.3s;
-  padding: 2rem;
+  /* padding: 2rem; */
 }
 
 .auth-container {
@@ -236,8 +236,9 @@ const handleRegister = () => {
 }
 
 .form-group input {
-  width: 100%;
-  padding: 0.8rem 1rem;
+  width: 80%;
+  padding: 10%;
+  padding: 3% 10% 3% 10%;
   border: 1px solid var(--input-border);
   border-radius: 8px;
   background-color: var(--input-bg);
