@@ -1,0 +1,90 @@
+:root {
+  --bg-color: #ffffff;                /* 页面整体背景色（亮色模式） */
+  --text-color: #333333;             /* 主文本颜色（亮色模式） */
+  --button-bg: #4CAF50;              /* 按钮背景色（亮色模式） */
+  --button-text-color: #ffffff;      /* 按钮文字颜色 */
+  --card-bg: #f4f4f4;                /* 卡片背景色（亮色模式） */
+  --link-color: #1E90FF;             /* 超链接颜色 */
+
+  /* ✅ 辅助变量 */
+  --border-color: #dddddd;           /* 元素边框颜色 */
+  --input-bg: #ffffff;               /* 输入框背景色 */
+  --input-text: #333333;             /* 输入框文字颜色 */
+  --input-border: #cccccc;           /* 输入框边框颜色 */
+  --hover-bg: #f0f0f0;               /* 悬浮时的背景色（如卡片、按钮 hover） */
+  --shadow-color: rgba(0, 0, 0, 0.1);/* 阴影颜色（用于卡片、弹窗等） */
+  --header-bg: #f8f8f8;              /* 顶部导航栏背景色 */
+  --footer-bg: #f8f8f8;              /* 页脚背景色 */
+
+  /* ✅ 新增提示状态变量 */
+  --success-color: #2ecc71;          /* 成功状态颜色 */
+  --warning-color: #f39c12;          /* 警告状态颜色 */
+  --error-color: #e74c3c;            /* 错误状态颜色 */
+
+  /* ✅ 滚动条颜色（可选） */
+  --scrollbar-bg: #eeeeee;           /* 滚动条背景 */
+  --scrollbar-thumb: #cccccc;        /* 滚动条滑块颜色 */
+}
+
+html.dark {
+  --bg-color: #121212;               /* 页面背景色（暗色模式） */
+  --text-color: #e0e0e0;             /* 主文本颜色（暗色模式） */
+  --button-bg: #4CAF50;              /* 按钮背景色（暗色模式仍可复用亮色） */
+  --button-text-color: #ffffff;      /* 按钮文字颜色 */
+  --card-bg: #2c2c2c;                /* 卡片背景色（暗色模式） */
+  --link-color: #1E90FF;             /* 超链接颜色 */
+
+  /* ✅ 辅助变量 */
+  --border-color: #444444;           /* 元素边框颜色 */
+  --input-bg: #1e1e1e;               /* 输入框背景色（暗色） */
+  --input-text: #e0e0e0;             /* 输入框文字颜色（暗色） */
+  --input-border: #555555;           /* 输入框边框颜色（暗色） */
+  --hover-bg: #2a2a2a;               /* 悬浮背景色（暗色模式） */
+  --shadow-color: rgba(0, 0, 0, 0.4);/* 阴影颜色（暗色模式） */
+  --header-bg: #1a1a1a;              /* 顶部导航背景（暗色） */
+  --footer-bg: #1a1a1a;              /* 页脚背景（暗色） */
+
+  /* ✅ 状态色（暗色下保持相同） */
+  --success-color: #2ecc71;
+  --warning-color: #f39c12;
+  --error-color: #e74c3c;
+
+  /* ✅ 滚动条颜色 */
+  --scrollbar-bg: #2a2a2a;
+  --scrollbar-thumb: #555555;
+}
+
+
+body {
+  background-color: var(--bg-color);
+  color: var(--text-color);
+  font-family: 'Arial', sans-serif;
+  transition: background-color 0.3s, color 0.3s; /* 为过渡添加动画效果 */
+}
+
+a {
+  color: var(--link-color);
+  text-decoration: none;
+}
+
+button {
+  background-color: var(--button-bg);
+  color: var(--button-text-color);
+  border: none;
+  padding: 10px 20px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+button:hover {
+  background-color: darken(var(--button-bg), 10%);
+}
+
+.card {
+  background-color: var(--card-bg);
+  color: var(--text-color);
+  padding: 1rem;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
