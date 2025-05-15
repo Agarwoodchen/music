@@ -126,9 +126,14 @@
 </template>
 
 <script setup lang="ts">
-import { inject, ref } from 'vue'
+import { inject, onMounted, ref } from 'vue'
 import { ThemeSymbol } from '../../theme-context'
 import Header from '../../components/header.vue'
+import { ElMessage } from 'element-plus'
+import {
+  getArtistsListApi
+} from '../../api/test.ts'
+
 
 const themeContext = inject(ThemeSymbol)
 
@@ -218,6 +223,40 @@ const viewArtist = (artist: any) => {
   console.log('查看歌手:', artist.name)
   // 实际应用中这里会跳转到歌手详情页
 }
+
+const handArtistsListData = (data: any[]) => {
+  return data.map((item: any, index: number) => ({
+    id: item.id,
+    name: item.name,
+    avatar: `https://picsum.photos/150/150?random=${index}`, // 每个 index 不同
+    fans: '8500w',
+    rank: index + 1,
+  }));
+};
+
+
+
+const loadPageData = async () => {
+  try {
+    const [
+      ArtistsList
+    ] = await Promise.all([
+      getArtistsListApi()
+    ])
+    console.log(ArtistsList, 'ArtistsList');
+    // console.log(handArtistsListData(ArtistsList.data));
+    popularArtists.value = handArtistsListData(ArtistsList.data)
+    // console.log(handRecentStudyLogsData(studyLogs));
+  } catch (error) {
+    console.error(error)
+    ElMessage.error('请求数据失败')
+  }
+}
+
+onMounted(() => {
+  loadPageData()
+})
+
 </script>
 
 <style scoped>

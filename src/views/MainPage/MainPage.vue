@@ -175,7 +175,10 @@ import { ThemeSymbol } from '../../theme-context'
 import { useRouter } from 'vue-router'
 import Header from '../../components/header.vue'
 import config from '../../api/config.js';
-
+import { ElMessage } from 'element-plus'
+import {
+  getArtistsListApi
+} from '../../api/test.js'
 
 const router = useRouter()
 const themeContext = inject(ThemeSymbol)
@@ -201,6 +204,23 @@ const logout = () => {
   // 你还可以添加一些其他操作，例如清除全局状态（如 Vuex 中的用户数据）
 };
 
+const loadPageData = async () => {
+  try {
+    const [
+      ArtistsList
+    ] = await Promise.all([
+      getArtistsListApi()
+    ])
+    console.log(ArtistsList, 'ArtistsList');
+
+    // console.log(handRecentStudyLogsData(studyLogs));
+  } catch (error) {
+    console.error(error)
+    ElMessage.error('请求数据失败')
+  }
+}
+
+
 onMounted(() => {
   try {
     const userJson = localStorage.getItem('user');
@@ -222,6 +242,8 @@ onMounted(() => {
   } catch (error) {
     console.error('读取 localStorage 时出错:', error);
   }
+
+  // loadPageData()
 });
 
 
