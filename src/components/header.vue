@@ -8,13 +8,31 @@
           <i class="icon-search"></i>
         </button>
       </div>
-      <nav class="nav-links">
-        <router-link to="/" class="nav-link" exact-active-class="active">首页</router-link>
-        <router-link to="/discover" class="nav-link" active-class="active">发现</router-link>
-        <router-link to="/playlist" class="nav-link" active-class="active">歌单</router-link>
-        <router-link to="/rank" class="nav-link" active-class="active">排行榜</router-link>
-        <router-link to="/artists" class="nav-link" active-class="active">歌手</router-link>
-      </nav>
+      <!-- 修改后的水平滚动导航 -->
+      <div class="nav-container">
+        <button class="scroll-button left" @click="scrollNav(-100)">
+          <i class="icon-chevron-left"></i>
+        </button>
+
+        <div class="nav-scroller" ref="navScroller">
+          <nav class="nav-links">
+            <router-link to="/" class="nav-link" exact-active-class="active">首页</router-link>
+            <router-link to="/discover" class="nav-link" active-class="active">发现</router-link>
+            <router-link to="/playlist" class="nav-link" active-class="active">歌单</router-link>
+            <router-link to="/rank" class="nav-link" active-class="active">排行榜</router-link>
+            <router-link to="/artists" class="nav-link" active-class="active">歌手</router-link>
+            <!-- 可以添加更多导航项 -->
+            <router-link to="/new" class="nav-link" active-class="active">新歌</router-link>
+            <router-link to="/mv" class="nav-link" active-class="active">MV</router-link>
+            <router-link to="/radio" class="nav-link" active-class="active">电台</router-link>
+            <router-link to="/live" class="nav-link" active-class="active">直播</router-link>
+          </nav>
+        </div>
+
+        <button class="scroll-button right" @click="scrollNav(100)">
+          <i class="icon-chevron-right"></i>
+        </button>
+      </div>
 
       <div class="user-actions">
         <button class="theme-toggle" @click="toggleTheme">
@@ -39,7 +57,7 @@
 </template>
 
 <script setup lang="ts">
-import { inject } from 'vue'
+import { inject, ref } from 'vue'
 import { ThemeSymbol } from '../theme-context'
 import { useRouter } from 'vue-router'
 
@@ -66,6 +84,17 @@ const logout = () => {
   // 你还可以添加一些其他操作，例如清除全局状态（如 Vuex 中的用户数据）
 };
 
+
+const navScroller = ref<HTMLElement | null>(null)
+
+const scrollNav = (amount: number) => {
+  if (navScroller.value) {
+    navScroller.value.scrollBy({
+      left: amount,
+      behavior: 'smooth'
+    })
+  }
+}
 </script>
 <style scoped>
 /* 头部样式 */
@@ -151,7 +180,7 @@ const logout = () => {
 .theme-toggle {
   background-color: transparent;
   color: var(--text-color);
-  border: 1px solid var(--border-color);
+  /* border: 1px solid var(--border-color); */
   padding: 0.5rem 1rem;
   border-radius: 20px;
   cursor: pointer;
@@ -357,5 +386,147 @@ const logout = () => {
   /* 高亮颜色，可自定义 */
   font-weight: bold;
   border-bottom: 2px solid var(--link-color);
+}
+
+
+/* 新增的导航容器样式 */
+.nav-container {
+  display: flex;
+  align-items: center;
+  margin-right: auto;
+  position: relative;
+  max-width: 600px;
+  /* 根据实际需要调整 */
+  overflow: hidden;
+}
+
+.nav-scroller {
+  flex: 1;
+  overflow-x: auto;
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+  /* 平滑滚动(iOS) */
+  scrollbar-width: none;
+  /* 隐藏滚动条(Firefox) */
+  margin: 0 10px;
+}
+
+/* 隐藏滚动条(Chrome/Safari) */
+.nav-scroller::-webkit-scrollbar {
+  display: none;
+}
+
+.nav-links {
+  display: flex;
+  gap: 1rem;
+  padding: 0 1rem;
+  white-space: nowrap;
+  /* 防止换行 */
+}
+
+/* 滚动按钮样式 */
+.scroll-button {
+  background-color: var(--card-bg);
+  color: var(--text-color);
+  border: none;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s;
+  flex-shrink: 0;
+  z-index: 1;
+  box-shadow: 0 2px 4px var(--shadow-color);
+}
+
+.scroll-button:hover {
+  background-color: var(--hover-bg);
+  transform: scale(1.1);
+}
+
+.scroll-button.left {
+  margin-right: -10px;
+  /* 部分覆盖导航区域 */
+}
+
+.scroll-button.right {
+  margin-left: -10px;
+  /* 部分覆盖导航区域 */
+}
+
+/* 新增的图标样式 */
+.icon-chevron-left::before {
+  content: "◀";
+}
+
+.icon-chevron-right::before {
+  content: "▶";
+}
+
+/* 响应式调整 */
+@media (max-width: 1200px) {
+  .search-bar {
+    margin-right: 1rem;
+    max-width: 300px;
+  }
+
+  .nav-container {
+    max-width: 400px;
+  }
+}
+
+@media (max-width: 992px) {
+  .header-content {
+    flex-wrap: wrap;
+    padding-bottom: 0.5rem;
+  }
+
+  .search-bar {
+    order: 3;
+    width: 100%;
+    max-width: 100%;
+    margin: 0.5rem 0;
+  }
+
+  .nav-container {
+    order: 2;
+    max-width: calc(100% - 120px);
+    /* 减去logo和用户操作的宽度 */
+    margin-right: 0;
+  }
+
+  .user-actions {
+    order: 1;
+    margin-left: auto;
+  }
+}
+
+@media (max-width: 576px) {
+  .logo {
+    font-size: 1.5rem;
+    margin-right: 1rem;
+  }
+
+  .nav-container {
+    max-width: calc(100% - 100px);
+  }
+
+  .nav-links {
+    gap: 0.75rem;
+    padding: 0 0.5rem;
+  }
+
+  .nav-link {
+    padding: 8px 10px;
+    font-size: 0.9rem;
+  }
+
+  .scroll-button {
+    width: 28px;
+    height: 28px;
+  }
 }
 </style>
