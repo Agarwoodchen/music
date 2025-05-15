@@ -7,8 +7,6 @@
       </button>
       <h1 class="page-title">歌单详情</h1>
     </header>
-
-
     <!-- 主要内容 -->
     <main class="main-content">
       <!-- 歌单封面和描述 -->
@@ -122,12 +120,26 @@
 </template>
 
 <script setup lang="ts">
-import { inject, ref } from 'vue'
+import { inject, onMounted, ref } from 'vue'
 import { ThemeSymbol } from '../theme-context.ts'
 import { useRouter } from 'vue-router'
-
 const router = useRouter()
+import {
+  getArtistDetailsMUALMApi
+} from '../api/test.ts'
+import { ElMessage } from 'element-plus'
 
+import { defineProps } from 'vue'
+
+const props = defineProps({
+  artistId: {
+    type: [String, Number],
+    required: true
+  }
+})
+
+// 示例：打印接收到的 id
+console.log('接收到 artistId:', props.artistId)
 const themeContext = inject(ThemeSymbol)
 
 if (!themeContext) {
@@ -168,6 +180,30 @@ const playSong = (song: any) => {
 const goBack = () => {
   router.go(-1) // 返回上一页
 }
+
+
+
+const loadPageData = async () => {
+  try {
+    const [
+      getArtistDetailsMUALM
+    ] = await Promise.all([
+      getArtistDetailsMUALMApi(props.artistId)
+    ])
+    console.log(getArtistDetailsMUALM, 'getArtistDetailsMUALM');
+
+  } catch (error) {
+    console.error(error)
+    ElMessage.error('请求数据失败')
+  }
+}
+
+
+onMounted(() => {
+  loadPageData()
+})
+
+
 </script>
 
 <style scoped>

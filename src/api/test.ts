@@ -21,3 +21,18 @@ export const getArtistsListApi = async () => {
     };
   }
 };
+
+
+// 获取歌手的专辑、歌曲和歌手自身信息（通过歌手 ID）
+export const getArtistDetailsMUALMApi = async (artistId) => {
+  try {
+    const response = await apiClient.get(`/api/artist-details/${artistId}`);
+    return response.data; // 返回包含 artist 和 albums 的对象
+  } catch (error) {
+    console.error('获取歌手详情失败:', error);
+    return {
+      success: false,
+      message: error.response?.data?.message || '获取歌手详情失败'
+    };
+  }
+};

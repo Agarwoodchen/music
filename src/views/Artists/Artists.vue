@@ -135,6 +135,7 @@ import {
   getArtistsListApi
 } from '../../api/test.ts'
 import MusicList from '../../components/MusicList.vue'
+import router from '../../router/index.ts'
 
 
 const themeContext = inject(ThemeSymbol)
@@ -171,16 +172,8 @@ const selectLetter = (letter: string) => {
 
 // 模拟热门歌手数据
 const popularArtists = ref([
-  { id: 1, name: '周杰伦', avatar: 'https://picsum.photos/150/150?artist1', fans: '1.2亿', rank: 1 },
-  { id: 2, name: 'Taylor Swift', avatar: 'https://picsum.photos/150/150?artist2', fans: '9800万', rank: 2 },
-  { id: 3, name: 'BTS', avatar: 'https://picsum.photos/150/150?artist3', fans: '8500万', rank: 3 },
-  { id: 4, name: '林俊杰', avatar: 'https://picsum.photos/150/150?artist4', fans: '7500万', rank: 4 },
-  { id: 5, name: 'Adele', avatar: 'https://picsum.photos/150/150?artist5', fans: '6800万', rank: 5 },
-  { id: 6, name: '五月天', avatar: 'https://picsum.photos/150/150?artist6', fans: '6200万', rank: 6 },
-  { id: 7, name: 'Ed Sheeran', avatar: 'https://picsum.photos/150/150?artist7', fans: '5800万', rank: 7 },
-  { id: 8, name: '邓紫棋', avatar: 'https://picsum.photos/150/150?artist8', fans: '5500万', rank: 8 }
+  { id: 1, name: '周杰伦', avatar: 'https://picsum.photos/150/150?artist1', fans: '1.2亿', rank: 1 }
 ])
-
 // 模拟歌手分类数据
 const artistCategories = ref([
   {
@@ -222,8 +215,8 @@ const artistCategories = ref([
 ])
 
 const viewArtist = (artist: any) => {
-  console.log('查看歌手:', artist.name)
-  // 实际应用中这里会跳转到歌手详情页
+  console.log('查看歌手:', artist)
+  router.push({ name: 'ArtistsDatalis', params: { id: artist.id } })
 }
 
 const handArtistsListData = (data: any[]) => {

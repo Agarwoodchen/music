@@ -95,6 +95,56 @@ app.get('/api/songs/:albumId', async (req, res) => {
 
 
 
+// 获取歌手的专辑和歌曲信息
+app.get('/api/artist-details/:artistId', async (req, res) => {
+  const artistId = req.params.artistId;
+
+  try {
+    // 查询歌手信息
+    const [artistRows] = await db.query(
+      'SELECT * FROM artists WHERE id = ?',
+      [artistId]
+    );
+
+    if (artistRows.length === 0) {
+      return res.status(404).json({ error: '歌手不存在' });
+    }
+
+    const artist = artistRows[0];
+
+    // 查询该歌手的所有专辑
+    const [albums] = await db.query(
+      'SELECT id, name, name_zh, release_year, cover_path FROM albums WHERE artist_id = ?',
+      [artistId]
+    );
+
+    // 查询每张专辑下的所有歌曲
+    const albumsWithSongs = await Promise.all(
+      albums.map(async (album) => {
+        const [songs] = await db.query(
+          'SELECT id, title, title_zh, duration, track_number, file_path FROM songs WHERE album_id = ?',
+          [album.id]
+        );
+        return {
+          ...album,
+          songs
+        };
+      })
+    );
+
+    // 返回数据
+    res.json({
+      artist,
+      albums: albumsWithSongs
+    });
+  } catch (error) {
+    console.error('获取歌手详情失败:', error);
+    res.status(500).json({ error: '服务器内部错误' });
+  }
+});
+
+
+
 
 // 启动服务
 app.listen(PORT, () => {
