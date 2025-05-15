@@ -123,6 +123,7 @@
       </div>
     </footer>
   </div>
+  <!-- <MusicList /> -->
 </template>
 
 <script setup lang="ts">
@@ -133,6 +134,7 @@ import { ElMessage } from 'element-plus'
 import {
   getArtistsListApi
 } from '../../api/test.ts'
+import MusicList from '../../components/MusicList.vue'
 
 
 const themeContext = inject(ThemeSymbol)
@@ -225,15 +227,19 @@ const viewArtist = (artist: any) => {
 }
 
 const handArtistsListData = (data: any[]) => {
-  return data.map((item: any, index: number) => ({
-    id: item.id,
-    name: item.name,
-    avatar: `https://picsum.photos/150/150?random=${index}`, // 每个 index 不同
-    fans: '8500w',
-    rank: index + 1,
-  }));
-};
+  return data.map((item: any, index: number) => {
+    // 生成 1000w ~ 9999w 的随机粉丝数
+    const fansCount = Math.floor(Math.random() * (9999 - 1000 + 1)) + 1000;
 
+    return {
+      id: item.id,
+      name: item.name_zh,
+      avatar: `https://picsum.photos/150/150?random=${index}`, // 随机图片
+      fans: `${fansCount}w`, // 随机粉丝数
+      rank: index + 1,        // 排名从 1 开始
+    };
+  });
+};
 
 
 const loadPageData = async () => {
