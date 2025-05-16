@@ -199,6 +199,54 @@ app.get('/api/album/:id', async (req, res) => {
   }
 });
 
+// 获取指定歌曲详情
+app.get('/api/songsBySongId/:id', async (req, res) => {
+  const songId = parseInt(req.params.id, 10);
+
+  if (isNaN(songId)) {
+    return res.status(400).json({ error: '无效的歌曲 ID' });
+  }
+
+  try {
+    const [rows] = await db.query(
+      `SELECT 
+          s.id AS song_id,
+          s.title_zh AS song_title_zh,
+          s.title AS song_title,
+          s.file_path,
+          s.duration,
+          s.track_number,
+          s.created_at AS song_created_at,
+          
+          al.id AS album_id,
+          al.name_zh AS album_name_zh,
+          al.name AS album_name,
+          al.release_year,
+          al.cover_path,
+          
+          ar.id AS artist_id,
+          ar.name_zh AS artist_name_zh,
+          ar.name AS artist_name
+        FROM songs s
+        JOIN albums al ON s.album_id = al.id
+        JOIN artists ar ON al.artist_id = ar.id
+        WHERE s.id = ?`,
+      [songId]
+    );
+
+    if (rows.length === 0) {
+      return res.status(404).json({ error: '未找到该歌曲' });
+    }
+
+    res.json(rows[0]);
+  } catch (error) {
+    console.error('查询歌曲失败:', error);
+    res.status(500).json({ error: '服务器错误' });
+  }
+});
+
+
+
 
 // 启动服务
 app.listen(PORT, () => {

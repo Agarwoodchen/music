@@ -113,6 +113,9 @@ import { ThemeSymbol } from '../theme-context'
 import { getAllAlbumAndSongApi } from '../api/test.ts'
 const themeContext = inject(ThemeSymbol)
 import { useRouter } from 'vue-router'
+import { usePlayerStore } from '../stores/usePlayerStore.ts'
+
+const player = usePlayerStore()
 const router = useRouter()
 const goBack = () => {
   router.go(-1) // 返回上一页
@@ -148,8 +151,9 @@ const relatedAlbums = [
 ]
 
 const playSong = (song: any) => {
-  console.log('播放歌曲:', song.title)
-  // 实际应用中这里会调用播放器API
+  console.log('播放歌曲:1111', song)
+  player.changeTrack(song.id)
+
 }
 
 const addToPlaylist = (song: any) => {

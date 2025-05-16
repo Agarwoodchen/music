@@ -51,3 +51,29 @@ export const getAllAlbumAndSongApi = async (albumId) => {
     };
   }
 };
+
+
+// 获取指定歌曲详情
+// 获取指定歌曲详情
+export const getDirectSongDetailApi = async (songId: number) => {
+  try {
+    const response = await apiClient.get(`/api/songsBySongId/${songId}`);
+    // 这里可以判断返回数据是否合理
+    if (!response.data || response.data.error) {
+      return {
+        success: false,
+        message: response.data?.error || '未找到歌曲详情'
+      };
+    }
+    return {
+      success: true,
+      data: response.data
+    };
+  } catch (error: any) {
+    console.error('获取歌曲详情失败:', error);
+    return {
+      success: false,
+      message: error.response?.data?.message || error.message || '获取歌曲详情失败'
+    };
+  }
+};
