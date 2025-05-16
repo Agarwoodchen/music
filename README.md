@@ -255,11 +255,9 @@ CREATE TABLE user_favorites (
     FOREIGN KEY(song_id) REFERENCES songs(song_id)  -- 外键，关联 `songs` 表的 `song_id`
 );
 ```
-
 - **`user_id`**：外键，用户 ID，表示收藏歌曲的用户。
 - **`song_id`**：外键，歌曲 ID，表示用户收藏的歌曲。
 - **`created_at`**：歌曲被收藏的时间。
-
 ---
 
 以上是每个表的详细设计和解释。如果你有任何疑问或需要更多细节，随时告诉我！

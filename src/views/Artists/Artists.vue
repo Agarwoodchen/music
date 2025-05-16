@@ -220,19 +220,47 @@ const viewArtist = (artist: any) => {
 }
 
 const handArtistsListData = (data: any[]) => {
-  return data.map((item: any, index: number) => {
-    // 生成 1000w ~ 9999w 的随机粉丝数
-    const fansCount = Math.floor(Math.random() * (9999 - 1000 + 1)) + 1000;
+  if (!Array.isArray(data)) {
+    console.warn('传入的 artist 列表不是数组:', data);
+    return [];
+  }
 
-    return {
-      id: item.id,
-      name: item.name_zh,
-      avatar: `https://picsum.photos/150/150?random=${index}`, // 随机图片
-      fans: `${fansCount}w`, // 随机粉丝数
-      rank: index + 1,        // 排名从 1 开始
-    };
-  });
+  // 判断是否是合法非负整数
+  const isValidFollowers = (val: any) =>
+    typeof val === 'number' && Number.isFinite(val) && val >= 0;
+
+  // 粉丝数格式化函数
+  const formatFans = (num: number): string => {
+    if (!isValidFollowers(num)) return '0';
+    if (num < 1000) return num.toString();
+    if (num < 10000) return (num / 1000).toFixed(1) + 'k';
+    return (num / 10000).toFixed(1) + 'w';
+  };
+
+  // 过滤无效 artist 数据后按 followers 排序
+  const sortedData = data
+    .filter(item => typeof item === 'object' && item !== null)
+    .map(item => ({
+      id: item.id ?? null,
+      name: typeof item.name_zh === 'string' && item.name_zh.trim()
+        ? item.name_zh.trim()
+        : (typeof item.name === 'string' ? item.name.trim() : '未知'),
+      avatar: typeof item.avatar_url === 'string' && item.avatar_url.trim()
+        ? item.avatar_url
+        : '', // 后面 fallback 到 picsum
+      followers: isValidFollowers(item.followers) ? item.followers : 0
+    }))
+    .sort((a, b) => b.followers - a.followers);
+
+  return sortedData.map((item, index) => ({
+    id: item.id,
+    name: item.name,
+    avatar: `https://picsum.photos/150/150?random=${index}`, // fallback
+    fans: formatFans(item.followers),
+    rank: index + 1
+  }));
 };
+
 
 
 const loadPageData = async () => {
