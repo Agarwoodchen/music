@@ -144,6 +144,61 @@ app.get('/api/artist-details/:artistId', async (req, res) => {
 
 
 
+// GET /api/album/:id - 查询专辑和其所有歌曲
+app.get('/api/album/:id', async (req, res) => {
+  const albumId = parseInt(req.params.id, 10);
+
+  if (isNaN(albumId)) {
+    return res.status(400).json({ error: '无效的专辑 ID' });
+  }
+
+  try {
+    const [albumRows] = await db.query(
+      `SELECT 
+        a.id AS album_id,
+        a.name AS album_name,
+        a.name_zh AS album_name_zh,
+        a.release_year,
+        a.cover_path,
+        a.created_at AS album_created_at,
+        ar.id AS artist_id,
+        ar.name_zh AS artist_name_zh
+      FROM albums a
+      LEFT JOIN artists ar ON a.artist_id = ar.id
+      WHERE a.id = ?`,
+      [albumId]
+    );
+
+    if (albumRows.length === 0) {
+      return res.status(404).json({ error: '未找到该专辑' });
+    }
+
+    const album = albumRows[0];
+
+    const [songRows] = await db.query(
+      `SELECT 
+        id AS song_id,
+        title,
+        title_zh,
+        file_path,
+        duration,
+        track_number,
+        created_at
+      FROM songs
+      WHERE album_id = ?`,
+      [albumId]
+    );
+
+    res.json({
+      album,
+      songs: songRows
+    });
+  } catch (err) {
+    console.error('数据库查询出错:', err);
+    res.status(500).json({ error: '服务器内部错误' });
+  }
+});
+
 
 // 启动服务
 app.listen(PORT, () => {

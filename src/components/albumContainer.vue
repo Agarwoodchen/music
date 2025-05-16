@@ -1,5 +1,8 @@
 <template>
-  <div class="album-container" :class="theme">
+  <div v-if="loading" class="loading-box">
+    <p>正在加载...</p>
+  </div>
+  <div v-else class="album-container" :class="theme">
     <!-- 添加顶部导航栏 -->
     <!-- <header class="page-header">
       <button class="back-button" @click="goBack">
@@ -16,11 +19,11 @@
             <img src="https://picsum.photos/150/150?artist1" alt="专辑封面">
           </div>
           <div class="album-info">
-            <h1 class="album-title">Midnights</h1>
-            <p class="album-artist">Taylor Swift</p>
+            <h1 class="album-title">{{ albumInfo.name }}</h1>
+            <p class="album-artist">{{ albumInfo.artist }}</p>
             <div class="album-meta">
-              <span class="meta-item">2022年发行</span>
-              <span class="meta-item">13首歌曲</span>
+              <span class="meta-item">{{ albumInfo.releaseYear }}</span>
+              <span class="meta-item">{{ songs.length }}首歌曲</span>
               <span class="meta-item">42分钟</span>
             </div>
             <p class="album-desc">这是Taylor Swift的第十张录音室专辑，探索了她在午夜时分思考的各种主题...</p>
@@ -105,9 +108,9 @@
 </template>
 
 <script setup lang="ts">
-import { inject } from 'vue'
+import { inject, onMounted, ref } from 'vue'
 import { ThemeSymbol } from '../theme-context'
-
+import { getAllAlbumAndSongApi } from '../api/test.ts'
 const themeContext = inject(ThemeSymbol)
 import { useRouter } from 'vue-router'
 const router = useRouter()
@@ -121,7 +124,7 @@ if (!themeContext) {
 const { theme, toggleTheme } = themeContext
 
 // 模拟数据
-const songs = [
+const songs = ref([
   { id: 1, title: 'Lavender Haze', artist: 'Taylor Swift', duration: '3:22' },
   { id: 2, title: 'Maroon', artist: 'Taylor Swift', duration: '3:38' },
   { id: 3, title: 'Anti-Hero', artist: 'Taylor Swift', duration: '3:20' },
@@ -135,7 +138,7 @@ const songs = [
   { id: 11, title: 'Karma', artist: 'Taylor Swift', duration: '3:24' },
   { id: 12, title: 'Sweet Nothing', artist: 'Taylor Swift', duration: '3:08' },
   { id: 13, title: 'Mastermind', artist: 'Taylor Swift', duration: '3:11' }
-]
+])
 
 const relatedAlbums = [
   { id: 101, name: 'Folklore', artist: 'Taylor Swift' },
@@ -163,6 +166,80 @@ const playAlbum = (album: any) => {
   console.log('播放专辑:', album.name)
   // 实际应用中这里会调用播放器API
 }
+
+
+import { ElMessage } from 'element-plus'
+import { defineProps } from 'vue'
+
+const props = defineProps({
+  albumtId: {
+    type: [String, Number],
+    required: true
+  }
+})
+
+const handleAllAlbumAndSongData = (data) => {
+  if (!data || typeof data !== 'object' || !data.album || !Array.isArray(data.songs)) {
+    console.warn('数据结构错误', data);
+    return { albumInfo: null, songs: [] };
+  }
+
+  const albumRaw = data.album;
+
+  const albumInfo = {
+    id: albumRaw.album_id,
+    name: albumRaw.album_name_zh || albumRaw.album_name || '未知专辑',
+    artist: albumRaw.artist_name_zh || '未知歌手',
+    releaseYear: albumRaw.release_year || '未知',
+    cover: albumRaw.cover_path || 'https://via.placeholder.com/300x300.png?text=No+Cover'
+  };
+
+  const formatDuration = (seconds) => {
+    if (!Number.isFinite(seconds)) return '未知';
+    const mins = Math.floor(seconds / 60);
+    const secs = String(seconds % 60).padStart(2, '0');
+    return `${mins}:${secs}`;
+  };
+
+  const songs = data.songs.map((song) => ({
+    id: song.song_id,
+    title: song.title_zh || song.title || '未知歌曲',
+    artist: albumInfo.artist,
+    duration: formatDuration(song.duration)
+  }));
+
+  return { albumInfo, songs };
+};
+const albumInfo = ref()
+
+
+const loading = ref(true)
+const loadPageData = async () => {
+  try {
+    const [
+      getAllAlbumAndSong
+    ] = await Promise.all([
+      getAllAlbumAndSongApi(props.albumtId)
+    ])
+    console.log(handleAllAlbumAndSongData(getAllAlbumAndSong));
+    songs.value = handleAllAlbumAndSongData(getAllAlbumAndSong).songs;
+    albumInfo.value = handleAllAlbumAndSongData(getAllAlbumAndSong).albumInfo;
+    // console.log(getAllAlbumAndSong);
+
+  } catch (error) {
+    console.error(error)
+    ElMessage.error('请求数据失败')
+  } finally {
+    loading.value = false
+  }
+}
+
+onMounted(() => {
+  // console.log(props.albumtId);
+
+  loadPageData()
+})
+
 </script>
 
 <style scoped>

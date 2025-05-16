@@ -36,3 +36,18 @@ export const getArtistDetailsMUALMApi = async (artistId) => {
     };
   }
 };
+
+
+// GET /api/album/:id - 查询专辑和其所有歌曲
+export const getAllAlbumAndSongApi = async (albumId) => {
+  try {
+    const response = await apiClient.get(`/api/album/${albumId}`);
+    return response.data;
+  } catch (error) {
+    console.error('获取专辑详情失败:', error);
+    return {
+      success: false,
+      message: error.response?.data?.message || '获取专辑详情失败'
+    };
+  }
+};
