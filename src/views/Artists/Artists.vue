@@ -216,7 +216,11 @@ const artistCategories = ref([
 
 const viewArtist = (artist: any) => {
   console.log('查看歌手:', artist)
-  router.push({ name: 'ArtistsDatalis', params: { id: artist.id } })
+  router.push({
+    name: 'ArtistsDatalis', params: {
+      id: artist.id
+    }
+  })
 }
 
 const handArtistsListData = (data: any[]) => {

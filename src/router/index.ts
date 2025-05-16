@@ -13,6 +13,7 @@ import PlayMusci from '../views/PlayMusci/PlayMusci.vue';
 import SongDetailPage from '../views/SongDetailPage/SongDetailPage.vue';
 import Mine from '../views/Mine/Mine.vue';
 import ArtistsDatalis from '../views/ArtistsDatalis/ArtistsDatalis.vue';
+import AlbumDatalis from '../views/AlbumDatalis/AlbumDatalis.vue';
 
 const routes = [
   {
@@ -69,6 +70,12 @@ const routes = [
     path: '/ArtistsDatalis:id',
     name: 'ArtistsDatalis',
     component: ArtistsDatalis,
+  },
+
+  {
+    path: '/AlbumDatalis:id',
+    name: 'AlbumDatalis',
+    component: AlbumDatalis,
   },
 ]
 

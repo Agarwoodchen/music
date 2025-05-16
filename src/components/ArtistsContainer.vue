@@ -4,12 +4,12 @@
   </div>
   <div v-else class="artist-container" :class="theme">
     <!-- 添加顶部导航栏 -->
-    <header class="page-header">
+    <!-- <header class="page-header">
       <button class="back-button" @click="goBack">
         <i class="icon">⬅️</i> 返回
       </button>
       <h1 class="page-title">歌手详情</h1>
-    </header>
+    </header> -->
     <!-- 歌手头部信息 -->
     <div class="artist-header">
       <div class="header-background"
@@ -172,6 +172,7 @@
 import { inject, onMounted, ref } from 'vue'
 import { ThemeSymbol } from '../theme-context.ts'
 import { useRouter } from 'vue-router'
+const router = useRouter()
 import {
   getArtistDetailsMUALMApi
 } from '../api/test.ts'
@@ -190,7 +191,7 @@ const loading = ref(true)
 const artistInfomation = ref<any>(null)
 // 示例：打印接收到的 id
 console.log('接收到 artistId:', props.artistId)
-const router = useRouter()
+
 
 const themeContext = inject(ThemeSymbol)
 
@@ -315,7 +316,7 @@ const allAlbums = ref([
 
 const viewAlbum = (album: any) => {
   console.log('查看专辑:', album.name)
-  router.push(`/album/${album.id}`)
+  router.push({ name: 'AlbumDatalis', params: { id: album.id } })
 }
 
 const playAlbum = (album: any) => {

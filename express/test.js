@@ -37,7 +37,6 @@ function encryptPassword(password) {
 }
 
 
-
 // 获取歌手列表
 app.get('/api/artists', async (req, res) => {
   try {

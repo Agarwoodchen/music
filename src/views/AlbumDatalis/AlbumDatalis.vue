@@ -1,6 +1,6 @@
 <template>
-  <backComo :backname="'歌手详情'" />
-  <ArtistsContainer :artist-id="artistId" />
+  <backComo :backname="'专辑详情'" />
+  <AlbumDatalis />
 </template>
 
 <script setup>
@@ -9,9 +9,10 @@ import { useRoute } from 'vue-router' // 引入 useRoute
 import { ThemeSymbol } from '../../theme-context'
 import { getUserAvatarApi } from '../../api/authService.js'
 // import MusicList from '../../components/MusicList.vue'
-import ArtistsContainer from '../../components/ArtistsContainer.vue'
+import AlbumDatalis from '../../components/albumContainer.vue'
 
 import backComo from '../../components/backComo.vue'
+
 const themeContext = inject(ThemeSymbol)
 
 if (!themeContext) {
