@@ -107,7 +107,7 @@
     </main>
 
     <!-- 底部播放器 -->
-    <footer class="player-bar">
+    <!-- <footer class="player-bar">
       <div class="player-content">
         <div class="now-playing">
           <router-link to="/PlayMusci">
@@ -165,7 +165,8 @@
           </button>
         </div>
       </div>
-    </footer>
+    </footer> -->
+    <!-- <musicPlayer /> -->
   </div>
 </template>
 
@@ -179,6 +180,7 @@ import { ElMessage } from 'element-plus'
 import {
   getArtistsListApi
 } from '../../api/test.js'
+import musicPlayer from '../../components/musicPlayer.vue'
 
 const router = useRouter()
 const themeContext = inject(ThemeSymbol)
@@ -599,7 +601,7 @@ onMounted(() => {
 }
 
 /* 播放器样式 */
-.player-bar {
+/* .player-bar {
   background-color: var(--card-bg);
   border-top: 1px solid var(--border-color);
   padding: 0.5rem 0;
@@ -731,7 +733,7 @@ onMounted(() => {
   height: 100%;
   background-color: var(--button-bg);
   border-radius: 2px;
-}
+} */
 
 /* 图标按钮 */
 .icon-button {

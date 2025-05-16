@@ -1,11 +1,13 @@
 <template>
   <ThemeProvider>
     <router-view />
+    <musicPlayer />
   </ThemeProvider>
 </template>
 
 <script setup lang="ts">
 import ThemeProvider from './components/ThemeProvider.vue'
+import musicPlayer from './components/musicPlayer.vue';
 </script>
 <style scoped>
 .logo {
