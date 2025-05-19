@@ -16,7 +16,7 @@
         :style="{ backgroundImage: 'linear-gradient(to bottom, rgba(0,0,0,0.3), var(--card-bg)), url()' }">
         <div class="header-content">
           <div class="album-cover">
-            <img src="https://picsum.photos/150/150?artist1" alt="专辑封面">
+            <img :src="apiBaseUrl + albumInfo.cover || 'https://picsum.photos/150/150?artist1'" alt="专辑封面">
           </div>
           <div class="album-info">
             <h1 class="album-title">{{ albumInfo.name }}</h1>
@@ -114,7 +114,10 @@ import { getAllAlbumAndSongApi } from '../api/test.ts'
 const themeContext = inject(ThemeSymbol)
 import { useRouter } from 'vue-router'
 import { usePlayerStore } from '../stores/usePlayerStore.ts'
-
+import { useApiStore } from '../stores/userApiUrl.ts'
+const apiStore = useApiStore()
+const apiBaseUrl = apiStore.apiBaseUrl
+const albumCover = ref('')
 const player = usePlayerStore()
 const router = useRouter()
 const goBack = () => {
@@ -147,6 +150,7 @@ const relatedAlbums = [
   { id: 101, name: 'Folklore', artist: 'Taylor Swift' },
   { id: 102, name: 'Evermore', artist: 'Taylor Swift' },
   { id: 103, name: '1989', artist: 'Taylor Swift' },
+  { id: 104, name: 'Melodrama', artist: 'Lorde' },
   { id: 104, name: 'Melodrama', artist: 'Lorde' }
 ]
 
@@ -226,9 +230,11 @@ const loadPageData = async () => {
       getAllAlbumAndSongApi(props.albumtId)
     ])
     console.log(handleAllAlbumAndSongData(getAllAlbumAndSong));
+    // console.log(apiStore.apiBaseUrl);
+
     songs.value = handleAllAlbumAndSongData(getAllAlbumAndSong).songs;
     albumInfo.value = handleAllAlbumAndSongData(getAllAlbumAndSong).albumInfo;
-    // console.log(getAllAlbumAndSong);
+
 
   } catch (error) {
     console.error(error)
