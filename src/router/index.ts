@@ -14,6 +14,7 @@ import SongDetailPage from '../views/SongDetailPage/SongDetailPage.vue';
 import Mine from '../views/Mine/Mine.vue';
 import ArtistsDatalis from '../views/ArtistsDatalis/ArtistsDatalis.vue';
 import AlbumDatalis from '../views/AlbumDatalis/AlbumDatalis.vue';
+import MyPlaylist from '../views/MyPlaylist/MyPlaylist.vue';
 
 const routes = [
   {
@@ -76,6 +77,11 @@ const routes = [
     path: '/AlbumDatalis:id',
     name: 'AlbumDatalis',
     component: AlbumDatalis,
+  },
+  {
+    path: '/MyPlaylist',
+    name: 'MyPlaylist',
+    component: MyPlaylist,
   },
 ]
 

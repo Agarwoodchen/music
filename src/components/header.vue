@@ -21,6 +21,7 @@
             <router-link to="/playlist" class="nav-link" active-class="active">歌单</router-link>
             <router-link to="/rank" class="nav-link" active-class="active">排行榜</router-link>
             <router-link to="/artists" class="nav-link" active-class="active">歌手</router-link>
+            <router-link to="/MyPlaylist" class="nav-link" active-class="active">我的歌单</router-link>
             <!-- 可以添加更多导航项 -->
             <router-link to="/new" class="nav-link" active-class="active">新歌</router-link>
             <router-link to="/mv" class="nav-link" active-class="active">MV</router-link>

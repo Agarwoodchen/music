@@ -77,3 +77,83 @@ export const getDirectSongDetailApi = async (songId: number) => {
     };
   }
 };
+
+// 根据用户 ID 获取该用户 自己创建的歌单 以及 收藏的歌单
+export const getUserPlaylistsApi = async (userId: number) => {
+  try {
+    const response = await apiClient.get(`/api/user/${userId}/playlists`);
+    if (!response.data || response.data.error) {
+      return {
+        success: false,
+        message: response.data?.error || '未找到歌单数据'
+      };
+    }
+    return {
+      success: true,
+      data: response.data
+    };
+  } catch (error: any) {
+    console.error('获取用户歌单失败:', error);
+    return {
+      success: false,
+      message: error.response?.data?.message || error.message || '获取用户歌单失败'
+    };
+  }
+};
+
+//“新建歌单”的 API  
+export const createPlaylistApi = async (playlistData: {
+  name: string;
+  description?: string;
+  cover_url?: string;
+  user_id?: number;
+  is_public?: number;
+  tags?: string;
+  category?: string;
+}) => {
+  try {
+    const response = await apiClient.post('/api/playlists/create', playlistData);
+    if (response.data.success) {
+      return {
+        success: true,
+        playlistId: response.data.playlist_id
+      };
+    } else {
+      return {
+        success: false,
+        message: response.data.message || '创建失败'
+      };
+    }
+  } catch (error: any) {
+    return {
+      success: false,
+      message: error.response?.data?.message || '创建失败'
+    };
+  }
+};
+
+
+// 上传封面图片
+export const uploadCoverImageApi = async (file: File) => {
+  try {
+    const formData = new FormData();
+    formData.append('cover', file); // 这个字段名和后端 multer.single('cover') 保持一致
+
+    const response = await apiClient.post('/api/upload/playlist-cover', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data'
+      }
+    });
+
+    return {
+      success: true,
+      coverUrl: response.data.coverUrl
+    };
+  } catch (error: any) {
+    console.error('上传封面图片失败:', error);
+    return {
+      success: false,
+      message: error.response?.data?.message || '上传封面图片失败'
+    };
+  }
+};
