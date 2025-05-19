@@ -15,6 +15,7 @@ import Mine from '../views/Mine/Mine.vue';
 import ArtistsDatalis from '../views/ArtistsDatalis/ArtistsDatalis.vue';
 import AlbumDatalis from '../views/AlbumDatalis/AlbumDatalis.vue';
 import MyPlaylist from '../views/MyPlaylist/MyPlaylist.vue';
+import PlaylistSquare from '../views/PlaylistSquare/PlaylistSquare.vue'
 
 const routes = [
   {
@@ -83,6 +84,11 @@ const routes = [
     name: 'MyPlaylist',
     component: MyPlaylist,
   },
+  {
+    path: '/PlaylistSquare',
+    name: 'PlaylistSquare',
+    component: PlaylistSquare,
+  },
 ]
 
 const router = createRouter({
@@ -94,7 +100,7 @@ const router = createRouter({
 // 添加前置路由守卫
 router.beforeEach((to, from, next) => {
   // 如果目标路由是登录页，则不需要进行验证，直接跳转
-  if (to.path === '/login') {
+  if (to.path === '/login' || to.path === '/register') {
     return next();  // 允许进入登录页
   }
 

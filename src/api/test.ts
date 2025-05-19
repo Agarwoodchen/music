@@ -157,3 +157,33 @@ export const uploadCoverImageApi = async (file: File) => {
     };
   }
 };
+
+
+
+
+// 获取推荐歌单
+// 获取推荐歌单
+export const getRecommendationPlayListApi = async () => {
+  try {
+    const response = await apiClient.get('/api/recommended/playlists');
+    const { success, data, message } = response.data;
+
+    if (!success) {
+      return {
+        success: false,
+        message: message || '未找到推荐歌单'
+      };
+    }
+
+    return {
+      success: true,
+      data
+    };
+  } catch (error: any) {
+    console.error('获取推荐歌单失败:', error);
+    return {
+      success: false,
+      message: error.response?.data?.message || error.message || '获取推荐歌单失败'
+    };
+  }
+};
