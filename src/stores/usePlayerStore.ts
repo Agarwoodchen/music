@@ -2,7 +2,7 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import { getDirectSongDetailApi } from '../api/test.ts'
-const storedApiUrl = 'http://localhost:9111';
+const storedApiUrl = import.meta.env.VITE_API_TEST_URL || '';
 
 
 
