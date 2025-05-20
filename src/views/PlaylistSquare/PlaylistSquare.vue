@@ -94,7 +94,7 @@
         </div>
       </div>
       <div class="load-more" v-if="!searchQuery">
-        <button class="load-more-btn" @click="loadMore">加载更多</button>
+        <button v-if="hasMore" class="load-more-btn" @click="loadMore">加载更多</button>
       </div>
     </section>
 
@@ -121,6 +121,8 @@ if (!themeContext) {
   throw new Error('Theme context not provided')
 }
 
+const pageSize = ref(8)
+const page = ref(1)
 const { theme, toggleTheme } = themeContext
 
 // 搜索查询
@@ -167,26 +169,10 @@ const featuredPlaylists = ref([
   {
     id: 1,
     name: '2023年度热门歌曲',
-    cover: 'https://source.unsplash.com/random/600x600/?music,1',
+    cover: '',
     playCount: '1.2亿',
     creator: '音乐平台官方',
     tags: ['热门', '年度']
-  },
-  {
-    id: 2,
-    name: '工作学习专注音乐',
-    cover: 'https://source.unsplash.com/random/600x600/?music,2',
-    playCount: '8560万',
-    creator: '专注音乐',
-    tags: ['轻音乐', '钢琴']
-  },
-  {
-    id: 3,
-    name: '跑步健身动力歌单',
-    cover: 'https://source.unsplash.com/random/600x600/?music,3',
-    playCount: '6420万',
-    creator: '运动达人',
-    tags: ['运动', '能量']
   }
 ])
 
@@ -236,19 +222,33 @@ const filteredPlaylists = computed(() => {
   return result
 })
 
+// 是否还有更多数据
+const hasMore = ref(true);
+
 // 加载更多
-const loadMore = () => {
-  const newPlaylists = Array.from({ length: 6 }, (_, i) => ({
-    id: allPlaylists.value.length + i + 1,
-    name: `更多歌单 ${allPlaylists.value.length + i + 1}`,
-    cover: `https://source.unsplash.com/random/300x300/?music,${allPlaylists.value.length + i + 100}`,
-    playCount: `${Math.floor(Math.random() * 9000) + 1000}万`,
-    creator: ['音乐达人', '官方推荐', '用户创作'][Math.floor(Math.random() * 3)],
-    category: ['pop', 'rock', 'electronic', 'hiphop'][Math.floor(Math.random() * 4)],
-    tags: ['华语', '欧美', '日语', '韩语'].slice(0, Math.floor(Math.random() * 3) + 1)
-  }))
-  allPlaylists.value.push(...newPlaylists)
-}
+const loadMore = async () => {
+  if (!hasMore.value) return;
+
+  try {
+    const response = await getAllPlaylistsApi(++page.value, pageSize.value);
+
+    if (response.success) {
+      const newData = handlePlayListData(response);
+
+      // 如果返回数据小于 pageSize，说明已经到底
+      if (newData.length < pageSize.value) {
+        hasMore.value = false;
+      }
+
+      allPlaylists.value.push(...newData);
+    } else {
+      ElMessage.error(response.message || '全部歌单获取失败');
+    }
+  } catch (error) {
+    console.log(error);
+    ElMessage.error('请求失败');
+  }
+};
 
 
 const formatPlayCount = (count: number) => {
@@ -256,6 +256,30 @@ const formatPlayCount = (count: number) => {
   if (count >= 1e4) return (count / 1e4).toFixed(1) + '万';
   return count.toString();
 };
+
+const handlePlayListData = (PlaylistsAfter: any) => {
+  console.log(PlaylistsAfter, 'sacacacascacac');
+
+  const result = PlaylistsAfter.data.map((item: any) => ({
+    id: item.id,
+    name: item.name,
+    cover: item.cover_url.startsWith('/uploads')
+      ? apiBaseUrl + item.cover_url
+      : item.cover_url,
+    playCount: formatPlayCount(item.play_count),
+    creator: item.user_id ? `用户ID：${item.username}` : '音乐平台官方',
+    tags: (() => {
+      try {
+        return item.tags ? JSON.parse(item.tags) : [];
+      } catch {
+        return [];
+      }
+    })(),
+    category: item.category
+  }));
+  return result;
+}
+
 
 const loadPageData = async () => {
   let user = null;
@@ -267,16 +291,13 @@ const loadPageData = async () => {
   } catch (e) {
     console.warn('解析用户信息失败', e);
   }
-
-
-
   try {
     const [
       getRecommendationPlayList,
       getAllPlaylists
     ] = await Promise.all([
       getRecommendationPlayListApi(),
-      getAllPlaylistsApi()
+      getAllPlaylistsApi(page.value, pageSize.value)
     ]);
 
     if (getRecommendationPlayList.success) {
@@ -287,39 +308,23 @@ const loadPageData = async () => {
           ? apiBaseUrl + item.cover_url
           : item.cover_url,
         playCount: formatPlayCount(item.play_count),
-        creator: item.user_id ? `用户ID：${item.user_id}` : '音乐平台官方',
+        creator: item.user_id ? `用户ID：${item.username}` : '音乐平台官方',
         tags: item.tags?.split(',') || []
       }));
     } else {
       ElMessage.error(getRecommendationPlayList.message || '推荐歌单获取失败');
     }
-    console.log(getAllPlaylists);
+    // console.log(getAllPlaylists);
 
     if (getAllPlaylists.success) {
-      allPlaylists.value = getAllPlaylists.data.map((item: any) => ({
-        id: item.id,
-        name: item.name,
-        cover: item.cover_url.startsWith('/uploads')
-          ? apiBaseUrl + item.cover_url
-          : item.cover_url,
-        playCount: formatPlayCount(item.play_count),
-        creator: item.user_id ? `用户ID：${item.user_id}` : '音乐平台官方',
-        tags: (() => {
-          try {
-            return item.tags ? JSON.parse(item.tags) : [];
-          } catch {
-            return [];
-          }
-        })(),
-        category: item.category
 
-      }));
-
+      allPlaylists.value = handlePlayListData(getAllPlaylists)
+      console.log(allPlaylists.value);
     } else {
       ElMessage.error(getAllPlaylists.message || '全部歌单获取失败');
     }
 
-    console.log('全部歌单:', allPlaylists.value);
+    // console.log('全部歌单:', allPlaylists.value);
 
 
   } catch (error) {

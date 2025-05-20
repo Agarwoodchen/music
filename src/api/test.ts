@@ -190,7 +190,7 @@ export const getRecommendationPlayListApi = async () => {
 
 
 // 获取全部歌单（分页）
-export const getAllPlaylistsApi = async (page = 1, pageSize = 12) => {
+export const getAllPlaylistsApi = async (page, pageSize) => {
   try {
     const response = await apiClient.get('/api/playlists', {
       params: { page, pageSize }
