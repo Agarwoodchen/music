@@ -513,17 +513,20 @@ app.use('/uploads', express.static(path.join(process.cwd(), 'server/uploads')));
 // 获取推荐歌单接口
 app.get('/api/recommended/playlists', async (req, res) => {
   try {
-    // 获取歌单列表，并根据喜欢数和播放量综合评分排序
     const [recommendedPlaylists] = await db.execute(
-      `SELECT id, name, cover_url, user_id, is_public, play_count, likes_count,
-              (likes_count * 0.6 + play_count * 0.4) AS score
-       FROM playlists
-       WHERE is_public = 1  -- 只考虑公开歌单
-       ORDER BY score DESC  -- 根据综合评分排序
-       LIMIT 4`  // 获取前四个
+      `SELECT p.id, p.name, p.cover_url, p.user_id, p.is_public, p.play_count, p.likes_count,
+              (p.likes_count * 0.6 + p.play_count * 0.4) AS score,
+              u.username,
+              up.nickname,
+              u.avatar_url
+       FROM playlists p
+       LEFT JOIN users u ON p.user_id = u.user_id
+       LEFT JOIN user_profiles up ON u.user_id = up.user_id
+       WHERE p.is_public = 1
+       ORDER BY score DESC
+       LIMIT 4`
     );
 
-    // 返回推荐歌单数据
     res.json({
       success: true,
       data: recommendedPlaylists
@@ -535,6 +538,262 @@ app.get('/api/recommended/playlists', async (req, res) => {
 });
 
 
+// 获取全部歌单（分页）
+// 获取全部公开歌单，支持分页，返回每个歌单的歌曲数量
+app.get('/api/playlists', async (req, res) => {
+  const page = parseInt(req.query.page) || 1;
+  const pageSize = parseInt(req.query.pageSize) || 10;
+  const offset = (page - 1) * pageSize;
+
+  try {
+    const [playlists] = await db.execute(`
+      SELECT 
+        p.*, 
+        COUNT(ps.song_id) AS song_count,
+        u.username,
+        up.nickname,
+        u.avatar_url
+      FROM playlists p
+      LEFT JOIN playlist_songs ps ON p.id = ps.playlist_id
+      LEFT JOIN users u ON p.user_id = u.user_id
+      LEFT JOIN user_profiles up ON u.user_id = up.user_id
+      WHERE p.is_public = 1
+      GROUP BY p.id
+      ORDER BY p.created_at DESC
+      LIMIT ${pageSize} OFFSET ${offset}
+    `);
+
+    const [countResult] = await db.execute(
+      `SELECT COUNT(*) AS total FROM playlists WHERE is_public = 1`
+    );
+
+    res.json({
+      success: true,
+      data: playlists,
+      total: countResult[0].total,
+      page,
+      pageSize,
+    });
+  } catch (err) {
+    console.error('获取歌单失败:', err);
+    res.status(500).json({ success: false, message: '服务器错误' });
+  }
+});
+
+
+
+
+// 获取歌单详情
+app.get('/api/playlistsDetails/:id', async (req, res) => {
+  const playlistId = parseInt(req.params.id);
+  if (isNaN(playlistId)) {
+    return res.status(400).json({ success: false, message: '无效的歌单ID' });
+  }
+
+  try {
+    // 获取歌单 + 创建者信息
+    const [playlistInfoResult] = await db.execute(
+      `SELECT p.*, u.username, u.avatar_url, up.nickname,
+              COUNT(ps.song_id) AS song_count
+       FROM playlists p
+       LEFT JOIN users u ON p.user_id = u.user_id
+       LEFT JOIN user_profiles up ON u.user_id = up.user_id
+       LEFT JOIN playlist_songs ps ON p.id = ps.playlist_id
+       WHERE p.id = ?
+       GROUP BY p.id`,
+      [playlistId]
+    );
+
+    if (playlistInfoResult.length === 0) {
+      return res.status(404).json({ success: false, message: '歌单未找到' });
+    }
+
+    // 获取歌单中的歌曲及其歌手、专辑信息
+    const [songsResult] = await db.execute(
+      `SELECT 
+     s.*, 
+     a.name AS album_name,
+     a.name_zh AS album_name_zh,
+     a.cover_path AS album_cover,
+     ar.id AS artist_id,
+     ar.name AS artist_name,
+     ar.name_zh AS artist_name_zh,
+     ar.avatar_url AS artist_avatar
+   FROM playlist_songs ps
+   JOIN songs s ON ps.song_id = s.id
+   JOIN albums a ON s.album_id = a.id
+   JOIN artists ar ON a.artist_id = ar.id
+   WHERE ps.playlist_id = ?
+   ORDER BY ps.order_index ASC`,
+      [playlistId]
+    );
+
+
+    res.json({
+      success: true,
+      data: {
+        ...playlistInfoResult[0],
+        songs: songsResult
+      }
+    });
+
+  } catch (err) {
+    console.error('获取歌单详情失败:', err);
+    res.status(500).json({ success: false, message: '服务器错误' });
+  }
+});
+
+
+
+
+
+
+
+
+
+// 获取某个歌单下的评论
+app.get('/api/playlists/:playlistId/comments', async (req, res) => {
+  const { playlistId } = req.params;
+
+  try {
+    const [rows] = await db.query(
+      `SELECT c.*, u.username, u.avatar_url
+   FROM playlist_comments c
+   JOIN users u ON c.user_id = u.user_id
+   WHERE c.playlist_id = ?
+   ORDER BY c.created_at ASC`,
+      [playlistId]
+    );
+
+
+    // 构建树状结构
+    const commentMap = {};
+    const result = [];
+
+    rows.forEach(row => {
+      row.replies = [];
+      commentMap[row.id] = row;
+    });
+
+    rows.forEach(row => {
+      if (row.parent_id) {
+        if (commentMap[row.parent_id]) {
+          commentMap[row.parent_id].replies.push(row);
+        }
+      } else {
+        result.push(row);
+      }
+    });
+
+    res.json({ success: true, data: result });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ success: false, message: '获取评论失败' });
+  }
+});
+
+
+
+
+// 添加评论或子评论
+app.post('/api/playlists/:playlistId/comments', async (req, res) => {
+  const { playlistId } = req.params;
+  const { user_id, content, parent_id = null, reply_to_user_id = null } = req.body;
+
+  if (!user_id || !content) {
+    return res.status(400).json({ success: false, message: '用户ID或内容不能为空' });
+  }
+
+  let finalReplyToUserId = reply_to_user_id;
+
+  try {
+    // 如果是子评论并且前端没有传 reply_to_user_id，则从 parent_id 获取其 user_id
+    if (parent_id && !reply_to_user_id) {
+      const [parentRows] = await db.query(
+        'SELECT user_id FROM playlist_comments WHERE id = ?',
+        [parent_id]
+      );
+
+      if (parentRows.length === 0) {
+        return res.status(400).json({ success: false, message: 'parent_id 对应的评论不存在' });
+      }
+
+      finalReplyToUserId = parentRows[0].user_id;
+    }
+
+    // 插入评论或子评论
+    const [result] = await db.query(
+      `INSERT INTO playlist_comments (playlist_id, user_id, content, parent_id, reply_to_user_id)
+       VALUES (?, ?, ?, ?, ?)`,
+      [playlistId, user_id, content, parent_id, finalReplyToUserId]
+    );
+
+    res.json({ success: true, id: result.insertId });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ success: false, message: '评论失败' });
+  }
+});
+
+
+
+// 删除评论（自动级联删除子评论）
+app.delete('/api/comments/:id', async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    await db.query('DELETE FROM playlist_comments WHERE id = ?', [id]);
+    res.json({ success: true });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ success: false, message: '删除评论失败' });
+  }
+});
+
+//点赞评论（可选）
+app.post('/api/comments/:id/like', async (req, res) => {
+  const { id } = req.params;
+  const { user_id } = req.body;
+
+  if (!user_id) {
+    return res.status(400).json({ success: false, message: '缺少用户ID' });
+  }
+
+  try {
+    // 判断是否已点过赞
+    const [rows] = await db.query(
+      `SELECT * FROM playlist_comment_likes WHERE comment_id = ? AND user_id = ?`,
+      [id, user_id]
+    );
+
+    if (rows.length > 0) {
+      // 取消点赞
+      await db.query(
+        `DELETE FROM playlist_comment_likes WHERE comment_id = ? AND user_id = ?`,
+        [id, user_id]
+      );
+      await db.query(
+        `UPDATE playlist_comments SET likes_count = likes_count - 1 WHERE id = ?`,
+        [id]
+      );
+      res.json({ success: true, liked: false });
+    } else {
+      // 点赞
+      await db.query(
+        `INSERT INTO playlist_comment_likes (comment_id, user_id) VALUES (?, ?)`,
+        [id, user_id]
+      );
+      await db.query(
+        `UPDATE playlist_comments SET likes_count = likes_count + 1 WHERE id = ?`,
+        [id]
+      );
+      res.json({ success: true, liked: true });
+    }
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ success: false, message: '点赞失败' });
+  }
+});
 
 
 // Excel 上传占位接口

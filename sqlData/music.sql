@@ -11,7 +11,7 @@
  Target Server Version : 80040 (8.0.40)
  File Encoding         : 65001
 
- Date: 19/05/2025 18:09:25
+ Date: 20/05/2025 17:38:07
 */
 
 SET NAMES utf8mb4;
@@ -72,12 +72,18 @@ CREATE TABLE `playlist_comments`  (
   `content` text CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '评论内容',
   `likes_count` bigint NULL DEFAULT 0 COMMENT '评论点赞数',
   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP COMMENT '评论时间',
+  `parent_id` int NULL DEFAULT NULL COMMENT '父评论ID，NULL为主评论',
+  `reply_to_user_id` int NULL DEFAULT NULL COMMENT '被回复的用户ID',
   PRIMARY KEY (`id`) USING BTREE,
   INDEX `playlist_id`(`playlist_id` ASC) USING BTREE,
   INDEX `user_id`(`user_id` ASC) USING BTREE,
+  INDEX `parent_id_idx`(`parent_id` ASC) USING BTREE,
+  INDEX `reply_to_user_id_idx`(`reply_to_user_id` ASC) USING BTREE,
   CONSTRAINT `playlist_comments_ibfk_1` FOREIGN KEY (`playlist_id`) REFERENCES `playlists` (`id`) ON DELETE CASCADE ON UPDATE RESTRICT,
-  CONSTRAINT `playlist_comments_ibfk_2` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`) ON DELETE CASCADE ON UPDATE RESTRICT
-) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '歌单评论表' ROW_FORMAT = Dynamic;
+  CONSTRAINT `playlist_comments_ibfk_2` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`) ON DELETE CASCADE ON UPDATE RESTRICT,
+  CONSTRAINT `fk_playlist_comments_parent` FOREIGN KEY (`parent_id`) REFERENCES `playlist_comments` (`id`) ON DELETE CASCADE ON UPDATE RESTRICT,
+  CONSTRAINT `fk_playlist_comments_reply_user` FOREIGN KEY (`reply_to_user_id`) REFERENCES `users` (`user_id`) ON DELETE SET NULL ON UPDATE RESTRICT
+) ENGINE = InnoDB AUTO_INCREMENT = 17 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '歌单评论表' ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Table structure for playlist_favorites
@@ -132,7 +138,7 @@ CREATE TABLE `playlists`  (
   PRIMARY KEY (`id`) USING BTREE,
   INDEX `user_id`(`user_id` ASC) USING BTREE,
   CONSTRAINT `playlists_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`) ON DELETE SET NULL ON UPDATE RESTRICT
-) ENGINE = InnoDB AUTO_INCREMENT = 11 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '歌单表，存储歌单信息' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 18 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '歌单表，存储歌单信息' ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Table structure for songs
@@ -157,6 +163,23 @@ CREATE TABLE `songs`  (
   INDEX `album_id`(`album_id` ASC) USING BTREE,
   CONSTRAINT `songs_ibfk_1` FOREIGN KEY (`album_id`) REFERENCES `albums` (`id`) ON DELETE CASCADE ON UPDATE RESTRICT
 ) ENGINE = InnoDB AUTO_INCREMENT = 1676 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = DYNAMIC;
+
+-- ----------------------------
+-- Table structure for user_profiles
+-- ----------------------------
+DROP TABLE IF EXISTS `user_profiles`;
+CREATE TABLE `user_profiles`  (
+  `user_id` int NOT NULL,
+  `nickname` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL,
+  `full_name` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL,
+  `gender` enum('male','female','other') CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL,
+  `birthdate` date NULL DEFAULT NULL,
+  `phone_number` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL,
+  `address` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL,
+  `bio` text CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL,
+  PRIMARY KEY (`user_id`) USING BTREE,
+  CONSTRAINT `fk_user_profiles_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`) ON DELETE CASCADE ON UPDATE RESTRICT
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Table structure for users
