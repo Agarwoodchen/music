@@ -74,10 +74,11 @@
           </div>
         </div>
       </section>
+      <CommentsSection :playlist-id="playlistId" />
     </main>
 
     <!-- 底部播放器 -->
-    <footer class="player-bar">
+    <!-- <footer class="player-bar">
       <div class="player-content">
         <div class="now-playing">
           <img src="https://picsum.photos/50/50" alt="当前播放" class="now-playing-cover">
@@ -100,8 +101,10 @@
           <div class="progress-time">4:56</div>
         </div>
       </div>
-    </footer>
+    </footer> -->
+
   </div>
+
 </template>
 
 <script setup lang="ts">
@@ -109,10 +112,11 @@ import { inject, ref, onMounted } from 'vue'
 import { ThemeSymbol } from '../theme-context'
 import Header from '../components/header.vue'
 import { getPlaylistsDetailsApi } from '../api/test.ts'
+import BackComo from '../components/backComo.vue'
+import CommentsSection from '../components/commentsSection.vue'
 import { ElMessage } from 'element-plus'
 import { defineProps } from 'vue'
 import { useApiStore } from '../stores/userApiUrl.ts'
-import BackComo from '../components/backComo.vue'
 const apiStore = useApiStore()
 const apiBaseUrl = apiStore.apiBaseUrl
 const props = defineProps({

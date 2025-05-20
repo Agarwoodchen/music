@@ -239,4 +239,56 @@ export const getPlaylistsDetailsApi = async (playlistId: number) => {
   }
 };
 
+// 获取某个歌单下的评论
+export const getSomePlaylistsCommentsApi = async (playlistId: number) => {
+  try {
+    const response = await apiClient.get(`/api/playlists/${playlistId}/comments`);
+
+    if (response.data.success) {
+      return {
+        success: true,
+        data: response.data.data
+      };
+    } else {
+      return { success: false, message: response.data.message };
+    }
+  } catch (error: any) {
+    return {
+      success: false,
+      message: error.response?.data?.message || '获取评论失败'
+    };
+  }
+};
+
+
+
+// 添加评论或子评论
+export const addSomePlaylistsCommentsOrReplyApi = async (
+  playlistId: number,
+  commentData: {
+    user_id: number;
+    content: string;
+    parent_id?: number; // 如果是子评论就传 parent_id
+  }
+) => {
+  try {
+    const response = await apiClient.post(`/api/playlists/${playlistId}/comments`, commentData);
+
+    if (response.data.success) {
+      return {
+        success: true,
+        data: response.data.data,
+      };
+    } else {
+      return { success: false, message: response.data.message };
+    }
+  } catch (error: any) {
+    return {
+      success: false,
+      message: error.response?.data?.message || '添加评论失败',
+    };
+  }
+};
+
+
 
