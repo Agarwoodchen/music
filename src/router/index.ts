@@ -39,7 +39,7 @@ const routes = [
     component: Discover,
   },
   {
-    path: '/Playlist',
+    path: '/Playlist:id',
     name: 'Playlist',
     component: Playlist,
   },

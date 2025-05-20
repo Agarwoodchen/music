@@ -43,7 +43,8 @@
         <router-link to="/featured" class="see-all">查看全部</router-link>
       </h2>
       <div class="playlist-grid">
-        <div class="playlist-card featured" v-for="playlist in featuredPlaylists" :key="playlist.id">
+        <div class="playlist-card featured" v-for="playlist in featuredPlaylists" :key="playlist.id"
+          @click="viewPlaylist(playlist.id)">
           <div class="cover-container">
             <img :src="playlist.cover" :alt="playlist.name" class="cover-image">
             <div class="play-overlay">
@@ -112,6 +113,7 @@ import Header from '../../components/header.vue'
 import { ElMessage } from 'element-plus'
 import { getRecommendationPlayListApi, getAllPlaylistsApi } from '../../api/test.ts'
 import { useApiStore } from '../../stores/userApiUrl.ts'
+import router from '../../router/index.ts'
 const apiStore = useApiStore()
 const apiBaseUrl = apiStore.apiBaseUrl
 
@@ -333,6 +335,9 @@ const loadPageData = async () => {
   }
 };
 
+const viewPlaylist = (playlistId: number) => {
+  router.push({ name: 'Playlist', params: { id: playlistId } });
+}
 
 onMounted(() => {
   loadPageData()
@@ -519,6 +524,7 @@ onMounted(() => {
   overflow: hidden;
   transition: all 0.3s;
   box-shadow: 0 4px 8px var(--shadow-color);
+  cursor: pointer;
 }
 
 .playlist-card:hover {

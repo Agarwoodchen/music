@@ -215,3 +215,28 @@ export const getAllPlaylistsApi = async (page, pageSize) => {
   }
 };
 
+
+
+// 获取歌单详情
+// 获取歌单详情（包含歌曲信息和用户信息）
+export const getPlaylistsDetailsApi = async (playlistId: number) => {
+  try {
+    const response = await apiClient.get(`/api/playlistsDetails/${playlistId}`);
+
+    if (response.data.success) {
+      return {
+        success: true,
+        data: response.data.data
+      };
+    } else {
+      return { success: false, message: response.data.message };
+    }
+  } catch (error: any) {
+    return {
+      success: false,
+      message: error.response?.data?.message || '获取歌单失败'
+    };
+  }
+};
+
+
