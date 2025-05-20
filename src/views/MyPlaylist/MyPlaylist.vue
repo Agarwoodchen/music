@@ -183,13 +183,44 @@ const newPlaylistForm = ref({
 })
 
 // 表单验证规则
+// 表单校验规则
 const playlistRules = {
   name: [
     { required: true, message: '请输入歌单名称', trigger: 'blur' },
-    { max: 30, message: '长度不超过30个字符', trigger: 'blur' }
+    { min: 1, max: 50, message: '名称长度应为1-50个字符', trigger: 'blur' },
+    {
+      validator: (_, value, callback) => {
+        if (/[<>:"/\\|?*]/.test(value)) {
+          callback(new Error('名称不能包含非法字符：<>:"/\\|?*'))
+        } else {
+          callback()
+        }
+      },
+      trigger: 'blur'
+    }
   ],
   description: [
-    { max: 200, message: '长度不超过200个字符', trigger: 'blur' }
+    { max: 200, message: '描述最多200字符', trigger: 'blur' }
+  ],
+  cover_url: [
+    { required: true, message: '请上传封面图片', trigger: 'change' }
+  ],
+  tags: [
+    {
+      type: 'array',
+      validator: (_, value, callback) => {
+        const hasInvalid = value.some(tag => /[<>:"/\\|?*]/.test(tag))
+        if (hasInvalid) {
+          callback(new Error('标签不能包含非法字符'))
+        } else {
+          callback()
+        }
+      },
+      trigger: 'change'
+    }
+  ],
+  category: [
+    { required: true, message: '请选择分类', trigger: 'change' }
   ]
 }
 
@@ -227,7 +258,9 @@ const handleCoverChange = async (file: UploadFile) => {
   }
 };
 
+
 // 创建歌单
+// 提交方法
 const handleCreatePlaylist = async () => {
   if (!playlistFormRef.value) return
 
@@ -235,29 +268,37 @@ const handleCreatePlaylist = async () => {
     await playlistFormRef.value.validate()
     creating.value = true
 
+    const sanitize = (str) => str.trim().replace(/[<>:"/\\|?*]/g, '')
+
+    const sanitizedForm = {
+      ...newPlaylistForm.value,
+      name: sanitize(newPlaylistForm.value.name),
+      description: sanitize(newPlaylistForm.value.description || ''),
+      tags: (newPlaylistForm.value.tags || []).map(tag => sanitize(tag))
+    }
+
     const userJson = localStorage.getItem('user')
     const user = userJson ? JSON.parse(userJson) : null
 
     const playlistData = {
-      ...newPlaylistForm.value,
+      ...sanitizedForm,
       user_id: user?.id
     }
 
+    // 假设 createPlaylistApi 提交接口
     const result = await createPlaylistApi(playlistData)
 
     if (result.success) {
       ElMessage.success('歌单创建成功')
       showCreateDialog.value = false
-      // 刷新歌单列表
       loadPageData()
-      // 重置表单
       resetPlaylistForm()
     } else {
-      ElMessage.error(result.message || '创建歌单失败')
+      ElMessage.error(result.message || '创建失败')
     }
   } catch (error) {
     console.error('创建歌单失败:', error)
-    ElMessage.error('创建歌单失败')
+    ElMessage.error('创建失败')
   } finally {
     creating.value = false
   }
