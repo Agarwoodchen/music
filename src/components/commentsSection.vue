@@ -134,7 +134,7 @@
 <script setup lang="ts">
 import { inject, ref, computed, nextTick, onMounted } from 'vue'
 import { ThemeSymbol } from '../theme-context'
-import { getSomePlaylistsCommentsApi } from '../api/test.ts'
+import { getSomePlaylistsCommentsApi, addSomePlaylistsCommentsOrReplyApi } from '../api/test.ts'
 
 
 import { ElMessage } from 'element-plus'
@@ -149,9 +149,13 @@ const props = defineProps({
   }
 })
 const playlistId = props.playlistId
+
+
+const userJson = localStorage.getItem('user');
+const user = userJson ? JSON.parse(userJson) : null;
 // console.log(props.playlistId, 'casuygcagsciagsgciascascascsa');
 
-
+const parentCommentId = ref<number | null>(null);
 
 const themeContext = inject(ThemeSymbol)
 
@@ -327,49 +331,66 @@ const showReplyInput = (comment: any) => {
   })
 }
 
-const submitReply = (comment: any) => {
-  if (!replyContent.value.trim()) return
-
-  const newReply = {
-    id: Date.now(),
-    user: {
-      id: currentUser.value.id,
-      name: currentUser.value.name,
-      avatar: currentUser.value.avatar
-    },
-    content: replyContent.value,
-    replyTo: comment.user.name,
-    time: new Date(),
-    likes: 0,
-    liked: false
+const submitReply = async (comment: any) => {
+  if (!replyContent.value.trim()) {
+    ElMessage.warning('回复内容不能为空');
+    return;
   }
+  const commentData = {
+    user_id: user.id,
+    content: replyContent.value,
+    parent_id: comment.id
+  }
+  try {
+    const result = await addSomePlaylistsCommentsOrReplyApi(playlistId, commentData);
 
-  comment.replies.push(newReply)
-  replyContent.value = ''
-  activeReplyComment.value = null
+    if (result.success) {
+      ElMessage.success('回复提交成功');
+      replyContent.value = '';
+      activeReplyComment.value = null;
+      // 重新加载评论数据，确保评论列表最新
+      await loadPageData();
+    } else {
+      ElMessage.error('提交失败：' + result.message);
+    }
+  } catch (error) {
+    ElMessage.error('提交失败，请稍后重试');
+  }
 }
 
 // 提交评论
-const submitComment = () => {
-  if (!newComment.value.trim()) return
-
-  const newCommentObj = {
-    id: Date.now(),
-    user: {
-      id: currentUser.value.id,
-      name: currentUser.value.name,
-      avatar: currentUser.value.avatar
-    },
-    content: newComment.value,
-    time: new Date(),
-    likes: 0,
-    liked: false,
-    replies: []
+const submitComment = async () => {
+  if (!newComment.value.trim()) {
+    ElMessage.warning('评论内容不能为空');
+    return;
   }
 
-  comments.value.unshift(newCommentObj)
-  newComment.value = ''
-}
+  const commentData: { user_id: number; content: string; parent_id?: number } = {
+    user_id: user.id,
+    content: newComment.value,
+  };
+
+  if (parentCommentId.value) {
+    commentData.parent_id = parentCommentId.value;
+  }
+
+  try {
+    const result = await addSomePlaylistsCommentsOrReplyApi(playlistId, commentData);
+
+    if (result.success) {
+      ElMessage.success('评论提交成功');
+      newComment.value = '';
+      // 重新加载评论数据，确保评论列表是最新的
+      await loadPageData();
+      // 清空父评论id，防止下次误发为回复
+      parentCommentId.value = null;
+    } else {
+      ElMessage.error('提交失败：' + result.message);
+    }
+  } catch (error) {
+    ElMessage.error('提交失败稍后重试');
+  }
+};
 
 // 加载更多
 const hasMoreComments = ref(true)
@@ -445,8 +466,7 @@ const handlePageData = (data: any) => {
 
 
 const loadPageData = async () => {
-  const userJson = localStorage.getItem('user');
-  const user = userJson ? JSON.parse(userJson) : null;
+
   // console.log(user);
 
   try {
