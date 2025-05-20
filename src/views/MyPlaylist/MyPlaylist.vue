@@ -24,7 +24,7 @@
           <div class="playlist-card" v-for="playlist in favoritePlaylists" :key="playlist.id">
             <router-link :to="`/playlist/${playlist.id}`" class="playlist-link">
               <div class="playlist-cover">
-                <img :src="playlist.cover" :alt="playlist.name" class="cover-image">
+                <img :src="apiBaseUrl + playlist.cover_url" :alt="playlist.name" class="cover-image">
                 <div class="play-count">
                   <i class="icon-headphones"></i> {{ playlist.playCount }}
                 </div>
