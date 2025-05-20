@@ -187,3 +187,31 @@ export const getRecommendationPlayListApi = async () => {
     };
   }
 };
+
+
+// 获取全部歌单（分页）
+export const getAllPlaylistsApi = async (page = 1, pageSize = 12) => {
+  try {
+    const response = await apiClient.get('/api/playlists', {
+      params: { page, pageSize }
+    });
+
+    if (response.data.success) {
+      return {
+        success: true,
+        data: response.data.data,
+        total: response.data.total,
+        page: response.data.page,
+        pageSize: response.data.pageSize
+      };
+    } else {
+      return { success: false, message: response.data.message };
+    }
+  } catch (error: any) {
+    return {
+      success: false,
+      message: error.response?.data?.message || '获取歌单失败'
+    };
+  }
+};
+

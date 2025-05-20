@@ -194,7 +194,8 @@ const playlistRules = {
 }
 
 // 标签和分类选项
-const popularTags = ref(['流行', '摇滚', '电子', '古典', '爵士', '民谣', 'R&B', '嘻哈'])
+const popularTags = ref(['华语', '欧美', '日语', '韩语', '治愈', '运动', '学习', '工作'])
+// const popularTags = ref(['流行', '摇滚', '电子', '古典', '爵士', '民谣', 'R&B', '嘻哈'])
 const categories = ref([
   { value: 'pop', label: '流行' },
   { value: 'rock', label: '摇滚' },

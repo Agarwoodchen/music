@@ -110,7 +110,7 @@ import { inject, ref, computed, onMounted } from 'vue'
 import { ThemeSymbol } from '../../theme-context'
 import Header from '../../components/header.vue'
 import { ElMessage } from 'element-plus'
-import { getRecommendationPlayListApi } from '../../api/test.ts'
+import { getRecommendationPlayListApi, getAllPlaylistsApi } from '../../api/test.ts'
 import { useApiStore } from '../../stores/userApiUrl.ts'
 const apiStore = useApiStore()
 const apiBaseUrl = apiStore.apiBaseUrl
@@ -129,12 +129,21 @@ const searchQuery = ref('')
 // 分类筛选
 const categories = ref([
   { id: 'all', name: '全部' },
-  { id: 'recommend', name: '推荐' },
+  { id: 'jazz', name: '爵士' },
   { id: 'pop', name: '流行' },
   { id: 'rock', name: '摇滚' },
   { id: 'electronic', name: '电子' },
-  { id: 'hiphop', name: '嘻哈' }
+  { id: 'folk', name: '民谣' },
+  { id: 'classical', name: '古典' },
 ])
+// const categories = ref([
+//   { id: 'all', name: '全部' },
+//   { id: 'recommend', name: '推荐' },
+//   { id: 'pop', name: '流行' },
+//   { id: 'rock', name: '摇滚' },
+//   { id: 'electronic', name: '电子' },
+//   { id: 'hiphop', name: '嘻哈' }
+// ])
 const activeCategory = ref('all')
 
 // 标签筛选
@@ -249,14 +258,29 @@ const formatPlayCount = (count: number) => {
 };
 
 const loadPageData = async () => {
-  const userJson = localStorage.getItem('user')
-  const user = userJson ? JSON.parse(userJson) : null
+  let user = null;
+  try {
+    const userJson = localStorage.getItem('user');
+    if (userJson) {
+      user = JSON.parse(userJson);
+    }
+  } catch (e) {
+    console.warn('解析用户信息失败', e);
+  }
+
+
 
   try {
-    const [res] = await Promise.all([getRecommendationPlayListApi()]);
+    const [
+      getRecommendationPlayList,
+      getAllPlaylists
+    ] = await Promise.all([
+      getRecommendationPlayListApi(),
+      getAllPlaylistsApi()
+    ]);
 
-    if (res.success) {
-      featuredPlaylists.value = res.data.map((item: any) => ({
+    if (getRecommendationPlayList.success) {
+      featuredPlaylists.value = getRecommendationPlayList.data.map((item: any) => ({
         id: item.id,
         name: item.name,
         cover: item.cover_url.startsWith('/uploads')
@@ -267,8 +291,36 @@ const loadPageData = async () => {
         tags: item.tags?.split(',') || []
       }));
     } else {
-      ElMessage.error(res.message || '推荐歌单获取失败');
+      ElMessage.error(getRecommendationPlayList.message || '推荐歌单获取失败');
     }
+    console.log(getAllPlaylists);
+
+    if (getAllPlaylists.success) {
+      allPlaylists.value = getAllPlaylists.data.map((item: any) => ({
+        id: item.id,
+        name: item.name,
+        cover: item.cover_url.startsWith('/uploads')
+          ? apiBaseUrl + item.cover_url
+          : item.cover_url,
+        playCount: formatPlayCount(item.play_count),
+        creator: item.user_id ? `用户ID：${item.user_id}` : '音乐平台官方',
+        tags: (() => {
+          try {
+            return item.tags ? JSON.parse(item.tags) : [];
+          } catch {
+            return [];
+          }
+        })(),
+        category: item.category
+
+      }));
+
+    } else {
+      ElMessage.error(getAllPlaylists.message || '全部歌单获取失败');
+    }
+
+    console.log('全部歌单:', allPlaylists.value);
+
 
   } catch (error) {
     console.error(error);
