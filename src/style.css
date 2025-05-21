@@ -6,3 +6,24 @@
 ul li {
   list-style: none;
 }
+/* 滚动条样式（Webkit 内核浏览器：Chrome, Edge, Safari） */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+  background-color: var(--scrollbar-bg);
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: var(--scrollbar-thumb);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background-color: darken(var(--scrollbar-thumb), 10%);
+}
+
+/* Firefox 滚动条样式（仅部分支持） */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-bg);
+}

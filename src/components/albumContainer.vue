@@ -62,6 +62,9 @@
             </div>
             <div class="item-duration">{{ song.duration }}</div>
             <div class="item-actions">
+              <button class="action-btn" @click="openAddToPlaylistModal(song)">
+                <i class="icon-favorite"></i>
+              </button>
               <button class="action-btn" @click.stop="addToPlaylist(song)">
                 <i class="icon-add"></i>
               </button>
@@ -105,6 +108,9 @@
       </div>
     </main>
   </div>
+  <!-- 添加到歌单弹窗组件 -->
+  <AddSongToPlaylistPopups :visible="showAddToPlaylistModal" :song="selectedSong" @close="closeAddToPlaylistModal"
+    @add-to-playlist="handleAddToPlaylist" @create-new-playlist="handleCreateNewPlaylist" />
 </template>
 
 <script setup lang="ts">
@@ -114,6 +120,7 @@ import { getAllAlbumAndSongApi } from '../api/test.ts'
 const themeContext = inject(ThemeSymbol)
 import { useRouter } from 'vue-router'
 import { usePlayerStore } from '../stores/usePlayerStore.ts'
+import AddSongToPlaylistPopups from '../components/addSongToPlaylistPopups.vue'
 import { useApiStore } from '../stores/userApiUrl.ts'
 const apiStore = useApiStore()
 const apiBaseUrl = apiStore.apiBaseUrl
@@ -175,6 +182,47 @@ const playAlbum = (album: any) => {
   // 实际应用中这里会调用播放器API
 }
 
+const favoriteSong = (song: any) => {
+  console.log('收藏歌曲:', song.title);
+
+}
+
+
+// 控制弹窗显示的状态
+const showAddToPlaylistModal = ref(false)
+// 当前选中的歌曲
+const selectedSong = ref<any>(null)
+
+// 打开弹窗
+const openAddToPlaylistModal = (song: any) => {
+  selectedSong.value = song
+  showAddToPlaylistModal.value = true
+}
+
+// 关闭弹窗
+const closeAddToPlaylistModal = () => {
+  showAddToPlaylistModal.value = false
+  selectedSong.value = null
+}
+
+// 处理添加到歌单事件
+const handleAddToPlaylist = (data: { song: any; playlist: any }) => {
+  console.log(`将歌曲 ${data.song.title} 添加到歌单 ${data.playlist.name}`)
+  // 这里可以调用API将歌曲添加到歌单
+  // 例如: api.addSongToPlaylist(data.song.id, data.playlist.id)
+
+  // 可以添加一些用户反馈
+  alert(`已添加 "${data.song.title}" 到 "${data.playlist.name}"`)
+}
+
+// 处理创建新歌单事件
+const handleCreateNewPlaylist = (song: any) => {
+  console.log(`为歌曲 ${song.title} 创建新歌单`)
+  // 这里可以跳转到创建歌单页面，或者打开另一个弹窗
+  // 例如: router.push('/playlist/new?songId=' + song.id)
+
+  alert(`将为您创建新歌单并添加 "${song.title}"`)
+}
 
 import { ElMessage } from 'element-plus'
 import { defineProps } from 'vue'
@@ -611,6 +659,14 @@ onMounted(() => {
 
 .icon-download::before {
   content: "⏬";
+}
+
+.icon-favorite::before {
+  content: "☆";
+}
+
+.icon-favorite.active::before {
+  content: "★";
 }
 
 @media (max-width: 768px) {

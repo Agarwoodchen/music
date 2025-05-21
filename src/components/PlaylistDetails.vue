@@ -116,9 +116,10 @@ import BackComo from '../components/backComo.vue'
 import CommentsSection from '../components/commentsSection.vue'
 import { ElMessage } from 'element-plus'
 import { defineProps } from 'vue'
-import { useApiStore } from '../stores/userApiUrl.ts'
+
 import { usePlayerStore } from '../stores/usePlayerStore.ts'
 const player = usePlayerStore()
+import { useApiStore } from '../stores/userApiUrl.ts'
 const apiStore = useApiStore()
 const apiBaseUrl = apiStore.apiBaseUrl
 const props = defineProps({
@@ -164,7 +165,7 @@ const recommendations = ref([
 ])
 
 const playSong = (song: any) => {
-  console.log('播放歌曲:', song.id)
+  // console.log('播放歌曲:', song.id)
   player.changeTrack(song.id)
 
   // 实际应用中这里会触发播放逻辑
