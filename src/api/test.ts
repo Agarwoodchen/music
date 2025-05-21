@@ -240,14 +240,21 @@ export const getPlaylistsDetailsApi = async (playlistId: number) => {
 };
 
 // 获取某个歌单下的评论
-export const getSomePlaylistsCommentsApi = async (playlistId: number) => {
+export const getSomePlaylistsCommentsApi = async (
+  playlistId: number,
+  user_id: number
+) => {
   try {
-    const response = await apiClient.get(`/api/playlists/${playlistId}/comments`);
+    const response = await apiClient.get(`/api/playlists/${playlistId}/comments`, {
+      params: {
+        user_id: user_id, // ← 传入当前用户ID
+      },
+    });
 
     if (response.data.success) {
       return {
         success: true,
-        data: response.data.data
+        data: response.data.data,
       };
     } else {
       return { success: false, message: response.data.message };
@@ -255,10 +262,11 @@ export const getSomePlaylistsCommentsApi = async (playlistId: number) => {
   } catch (error: any) {
     return {
       success: false,
-      message: error.response?.data?.message || '获取评论失败'
+      message: error.response?.data?.message || '获取评论失败',
     };
   }
 };
+
 
 
 
@@ -318,6 +326,21 @@ export const addSongToPlaylistApi = async (
     return {
       success: false,
       message: error.response?.data?.message || '添加歌曲失败',
+    };
+  }
+};
+
+
+
+// 点赞或取消点赞评论
+export const toggleLikeComment = async (user_id: number, comment_id: number) => {
+  try {
+    const response = await apiClient.post('/api/comment/like', { user_id, comment_id });
+    return response.data;
+  } catch (error: any) {
+    return {
+      success: false,
+      message: error.response?.data?.message || '操作失败',
     };
   }
 };

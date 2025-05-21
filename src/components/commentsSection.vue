@@ -194,7 +194,7 @@
 <script setup lang="ts">
 import { inject, ref, computed, nextTick, onMounted } from 'vue'
 import { ThemeSymbol } from '../theme-context'
-import { getSomePlaylistsCommentsApi, addSomePlaylistsCommentsOrReplyApi } from '../api/test.ts'
+import { getSomePlaylistsCommentsApi, addSomePlaylistsCommentsOrReplyApi, toggleLikeComment } from '../api/test.ts'
 import { usePlayerStore } from '../stores/usePlayerStore.ts'
 const player = usePlayerStore()
 import { ElMessage } from 'element-plus'
@@ -279,9 +279,22 @@ const sortedComments = computed(() => {
 })
 
 // 点赞功能
-const toggleLike = (comment: any) => {
+const toggleLike = async (comment: any) => {
   comment.liked = !comment.liked
   comment.likes += comment.liked ? 1 : -1
+  try {
+    const res = await toggleLikeComment(user.id, comment.id)
+    // console.log(res);
+    if (res.success) {
+      console.log(res, '点赞成功');
+    } else {
+      console.log(res, '点赞失败');
+
+    }
+  } catch (error) {
+    console.log(error);
+
+  }
 }
 
 // 回复功能
@@ -409,7 +422,7 @@ const handlePageData = (data: any) => {
     content: comment.content,
     time: new Date(comment.created_at),
     likes: comment.likes_count,
-    liked: false, // 默认未点赞，前端逻辑决定是否标记
+    liked: comment.liked, // 默认未点赞，前端逻辑决定是否标记
     replies: (comment.replies || []).map((reply: any) => ({
       id: reply.id,
       user: {
@@ -423,7 +436,7 @@ const handlePageData = (data: any) => {
       replyTo: comment.username,
       time: new Date(reply.created_at),
       likes: reply.likes_count,
-      liked: false,
+      liked: reply.liked,
     })),
   }));
 
@@ -439,10 +452,14 @@ const loadPageData = async () => {
     const [
       getSomePlaylistsComments
     ] = await Promise.all([
-      getSomePlaylistsCommentsApi(playlistId)
+      getSomePlaylistsCommentsApi(playlistId, user.id)
     ])
+    console.log(getSomePlaylistsComments);
+
     // console.log(handlePageData(getSomePlaylistsComments.data));
     comments.value = handlePageData(getSomePlaylistsComments.data)
+    console.log(comments.value);
+
     currentUser.value = {
       id: user.id,
       name: user.username,
