@@ -16,8 +16,10 @@
 
         <div class="nav-scroller" ref="navScroller">
           <nav class="nav-links">
+            <router-link to="/ProfileContainer" class="nav-link" active-class="active">个人主页</router-link>
             <router-link to="/" class="nav-link" exact-active-class="active">首页</router-link>
             <router-link to="/discover" class="nav-link" active-class="active">发现</router-link>
+
             <router-link to="/PlaylistSquare" class="nav-link" active-class="active">歌单</router-link>
             <router-link to="/rank" class="nav-link" active-class="active">排行榜</router-link>
             <router-link to="/artists" class="nav-link" active-class="active">歌手</router-link>

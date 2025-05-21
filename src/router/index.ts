@@ -16,6 +16,7 @@ import ArtistsDatalis from '../views/ArtistsDatalis/ArtistsDatalis.vue';
 import AlbumDatalis from '../views/AlbumDatalis/AlbumDatalis.vue';
 import MyPlaylist from '../views/MyPlaylist/MyPlaylist.vue';
 import PlaylistSquare from '../views/PlaylistSquare/PlaylistSquare.vue'
+import ProfileContainer from "../views/ProfileContainer/ProfileContainer.vue"
 
 const routes = [
   {
@@ -88,6 +89,11 @@ const routes = [
     path: '/PlaylistSquare',
     name: 'PlaylistSquare',
     component: PlaylistSquare,
+  },
+  {
+    path: '/ProfileContainer',
+    name: 'ProfileContainer',
+    component: ProfileContainer,
   },
 ]
 

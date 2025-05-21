@@ -346,3 +346,20 @@ export const toggleLikeComment = async (user_id: number, comment_id: number) => 
 };
 
 
+// 添加收藏歌曲接口
+// 添加收藏歌曲接口（前端调用）
+export const toggleFavoritesSongApi = async (user_id: number, song_id: number) => {
+  try {
+    const response = await apiClient.post('/api/favorites/song', { user_id, song_id });
+    return {
+      success: true,
+      data: response.data,
+    };
+  } catch (error: any) {
+    return {
+      success: false,
+      message: error.response?.data?.message || '操作失败',
+    };
+  }
+};
+
