@@ -22,13 +22,25 @@
           @blur="isInputFocused = false"></textarea>
         <div class="input-actions" v-show="isInputFocused || newComment">
           <div class="action-buttons">
+            <!-- 表情按钮 -->
             <button class="emoji-btn" @click="showEmojiPicker = !showEmojiPicker">
-              <i class="icon-emoji">😊</i>
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" viewBox="0 0 24 24" width="20"
+                height="20" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                  d="M14.828 14.828a4 4 0 0 1-5.656 0M9 10h.01M15 10h.01M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20z" />
+              </svg>
             </button>
+
+            <!-- 图片上传按钮 -->
             <button class="image-btn">
-              <i class="icon-image">🖼️</i>
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" viewBox="0 0 24 24" width="20"
+                height="20" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                  d="M4 16l4-4a3 3 0 0 1 4 0l4 4m0 0l2-2a3 3 0 0 1 4 0M4 6h16a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2z" />
+              </svg>
             </button>
           </div>
+
           <button class="submit-btn" :disabled="!newComment.trim()" @click="submitComment">
             评论
           </button>
@@ -64,16 +76,43 @@
           </div>
           <div class="comment-text">{{ comment.content }}</div>
           <div class="comment-footer">
+            <!-- 点赞按钮 -->
             <button class="like-btn" @click="toggleLike(comment)">
-              <i :class="comment.liked ? 'icon-liked' : 'icon-like'">
-                {{ comment.liked ? '❤️' : '🤍' }}
-              </i>
+              <span v-if="comment.liked">
+                <!-- 实心爱心 -->
+                <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24" width="20" height="20">
+                  <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5
+               2 5.42 4.42 3 7.5 3c1.74 0 3.41 0.81 4.5 2.09
+               C13.09 3.81 14.76 3 16.5 3
+               19.58 3 22 5.42 22 8.5
+               c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
+                </svg>
+              </span>
+              <span v-else>
+                <!-- 空心爱心 -->
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-width="2"
+                  viewBox="0 0 24 24" width="20" height="20">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M12 21C12 21 5 14.5 5 9.5
+               C5 6.462 7.462 4 10.5 4
+               C12.076 4 13.574 4.793 14.25 6.048
+               C14.926 4.793 16.424 4 18 4
+               C21.038 4 23.5 6.462 23.5 9.5
+               C23.5 14.5 17.5 21 12 21Z" />
+                </svg>
+              </span>
               <span>{{ comment.likes }}</span>
             </button>
+
+            <!-- 回复按钮 -->
             <button class="reply-btn" @click="showReplyInput(comment)">
-              <i class="icon-reply">↩️</i>
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-width="2"
+                viewBox="0 0 24 24" width="20" height="20">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M3 10h11a4 4 0 0 1 4 4v6" />
+                <path stroke-linecap="round" stroke-linejoin="round" d="M3 10l5 5M3 10l5-5" />
+              </svg>
               <span>回复</span>
             </button>
+
           </div>
 
           <!-- 回复列表 -->
@@ -93,11 +132,32 @@
                 </div>
                 <div class="reply-footer">
                   <button class="like-btn" @click="toggleLike(reply)">
-                    <i :class="reply.liked ? 'icon-liked' : 'icon-like'">
-                      {{ reply.liked ? '❤️' : '🤍' }}
-                    </i>
+                    <span v-if="reply.liked">
+                      <!-- 实心爱心（已点赞） -->
+                      <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24" width="20"
+                        height="20">
+                        <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5
+               2 5.42 4.42 3 7.5 3c1.74 0 3.41 0.81 4.5 2.09
+               C13.09 3.81 14.76 3 16.5 3
+               19.58 3 22 5.42 22 8.5
+               c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
+                      </svg>
+                    </span>
+                    <span v-else>
+                      <!-- 空心爱心（未点赞） -->
+                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-width="2"
+                        viewBox="0 0 24 24" width="20" height="20">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 21C12 21 5 14.5 5 9.5
+               C5 6.462 7.462 4 10.5 4
+               C12.076 4 13.574 4.793 14.25 6.048
+               C14.926 4.793 16.424 4 18 4
+               C21.038 4 23.5 6.462 23.5 9.5
+               C23.5 14.5 17.5 21 12 21Z" />
+                      </svg>
+                    </span>
                     <span>{{ reply.likes }}</span>
                   </button>
+
                 </div>
               </div>
             </div>

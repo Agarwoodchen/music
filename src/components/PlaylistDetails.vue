@@ -7,8 +7,13 @@
         <div class="playlist-cover">
           <img :src="playlist.coverUrl" alt="歌单封面" class="cover-img">
           <div class="play-count">
-            <i class="icon">▶️</i> {{ playlist.playCount }} 次播放
+            <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24" width="18" height="18">
+              <path
+                d="M5 3.868v16.264c0 .769.822 1.256 1.497.877l13.137-8.132a1 1 0 0 0 0-1.754L6.497 2.991A1 1 0 0 0 5 3.868z" />
+            </svg>
+            {{ playlist.playCount }} 次播放
           </div>
+
         </div>
         <div class="playlist-info">
           <div class="playlist-tag">{{ playlist.tag }}</div>
@@ -23,9 +28,34 @@
           </p>
           <p class="playlist-desc">{{ playlist.description }}</p>
           <div class="playlist-actions">
-            <button class="play-btn"><i class="icon">▶️</i> 播放全部</button>
-            <button class="collect-btn"><i class="icon">❤️</i> 收藏</button>
-            <button class="share-btn"><i class="icon">↗️</i> 分享</button>
+            <!-- 播放全部 -->
+            <button class="play-btn">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24" width="20" height="20">
+                <path
+                  d="M5 3.868v16.264c0 .769.822 1.256 1.497.877l13.137-8.132a1 1 0 0 0 0-1.754L6.497 2.991A1 1 0 0 0 5 3.868z" />
+              </svg>
+              播放全部
+            </button>
+
+            <!-- 收藏 -->
+            <button class="collect-btn">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-width="2"
+                viewBox="0 0 24 24" width="20" height="20">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                  d="M12 21C12 21 5 14.5 5 9.5C5 6.462 7.462 4 10.5 4C12.076 4 13.574 4.793 14.25 6.048C14.926 4.793 16.424 4 18 4C21.038 4 23.5 6.462 23.5 9.5C23.5 14.5 17.5 21 12 21Z" />
+              </svg>
+              收藏
+            </button>
+
+            <!-- 分享 -->
+            <button class="share-btn">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-width="2"
+                viewBox="0 0 24 24" width="20" height="20">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                  d="M15 8a3 3 0 1 0-3-3m3 3-6 4m0 0a3 3 0 1 0 0 6m0-6 6 4m3-1a3 3 0 1 0 0-6" />
+              </svg>
+              分享
+            </button>
           </div>
         </div>
       </section>

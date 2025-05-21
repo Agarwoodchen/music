@@ -1,8 +1,13 @@
 <template>
   <header class="page-header">
     <button class="back-button" @click="goBack">
-      <i class="icon">⬅️</i> 返回
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" viewBox="0 0 24 24" width="20"
+        height="20" stroke-width="2">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
+      </svg>
+      返回
     </button>
+
     <h1 class="page-title">{{ title }}</h1>
   </header>
 </template>

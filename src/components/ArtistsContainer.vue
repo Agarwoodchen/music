@@ -811,30 +811,37 @@ onMounted(() => {
 
 .icon-headphones::before {
   content: "🎧";
+  /* 耳机 - 简洁明确 */
 }
 
 .icon-fans::before {
-  content: "❤️";
+  content: "♡";
+  /* 空心心，轻盈优雅 */
 }
 
 .icon-music::before {
-  content: "🎵";
+  content: "♫";
+  /* 两个八分音符，简单活泼 */
 }
 
 .icon-plus::before {
   content: "+";
+  /* 经典加号 */
 }
 
 .icon-play::before {
   content: "▶";
+  /* 经典播放三角 */
 }
 
 .icon-add::before {
-  content: "➕";
+  content: "＋";
+  /* 全角加号，看起来更方正 */
 }
 
 .icon-download::before {
-  content: "⏬";
+  content: "⬇";
+  /* 简单箭头 */
 }
 
 @media (max-width: 768px) {

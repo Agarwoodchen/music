@@ -672,8 +672,9 @@ onMounted(() => {
   content: "+";
 }
 
+/* 现代双箭头向下 */
 .icon-download::before {
-  content: "⏬";
+  content: "⇩";
 }
 
 .icon-favorite::before {
