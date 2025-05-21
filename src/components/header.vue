@@ -41,9 +41,9 @@
           {{ theme === 'dark' ? '亮色模式' : '暗色模式' }}
         </button>
         <div class="user-dropdown">
-          <router-link to="Mine">
+          <router-link to="/mine">
             <button class="user-button">
-              <i class="icon-user"></i>
+              <img :src="apiBaseUrl + user.avatar_url" alt="User Avatar" class="avatar-img" />
             </button>
           </router-link>
           <div class="dropdown-menu">
@@ -52,6 +52,7 @@
             </button>
           </div>
         </div>
+
       </div>
     </div>
   </header>
@@ -70,7 +71,11 @@ if (!themeContext) {
 }
 
 const { theme, toggleTheme } = themeContext
-
+import { useApiStore } from '../stores/userApiUrl'
+const userJson = localStorage.getItem('user');
+const user = userJson ? JSON.parse(userJson) : null;
+const apiStore = useApiStore()
+const apiBaseUrl = apiStore.apiBaseUrl
 
 const logout = () => {
   // 清除本地存储中的 token
@@ -529,5 +534,13 @@ const scrollNav = (amount: number) => {
     width: 28px;
     height: 28px;
   }
+}
+
+.avatar-img {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 1px solid #ccc;
 }
 </style>
