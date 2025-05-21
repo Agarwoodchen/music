@@ -116,12 +116,14 @@
 <script setup lang="ts">
 import { inject, onMounted, ref } from 'vue'
 import { ThemeSymbol } from '../theme-context'
-import { getAllAlbumAndSongApi } from '../api/test.ts'
+import { getAllAlbumAndSongApi, addSongToPlaylistApi } from '../api/test.ts'
 const themeContext = inject(ThemeSymbol)
 import { useRouter } from 'vue-router'
 import { usePlayerStore } from '../stores/usePlayerStore.ts'
 import AddSongToPlaylistPopups from '../components/addSongToPlaylistPopups.vue'
 import { useApiStore } from '../stores/userApiUrl.ts'
+const userJson = localStorage.getItem('user');
+const user = userJson ? JSON.parse(userJson) : null;
 const apiStore = useApiStore()
 const apiBaseUrl = apiStore.apiBaseUrl
 const albumCover = ref('')
@@ -206,13 +208,26 @@ const closeAddToPlaylistModal = () => {
 }
 
 // 处理添加到歌单事件
-const handleAddToPlaylist = (data: { song: any; playlist: any }) => {
-  console.log(`将歌曲 ${data.song.title} 添加到歌单 ${data.playlist.name}`)
+const handleAddToPlaylist = async (data: { song: any; playlist: any }) => {
+  console.log(`将歌曲 ${data.song.id} 添加到歌单 ${data.playlist.id}`)
   // 这里可以调用API将歌曲添加到歌单
   // 例如: api.addSongToPlaylist(data.song.id, data.playlist.id)
+  try {
+    let res = await addSongToPlaylistApi(data.playlist.id, data.song.id, user.id)
+    console.log(res);
 
+    if (res.success) {
+      ElMessage.success(`已添加 "${data.song.title}" 到 "${data.playlist.name}"`)
+    } else {
+      ElMessage.error(`添加失败 "${data.song.title}" 到 "${data.playlist.name}" ${res.message}`)
+    }
+  } catch (error) {
+    console.log(error);
+
+  }
   // 可以添加一些用户反馈
-  alert(`已添加 "${data.song.title}" 到 "${data.playlist.name}"`)
+
+  // alert(`已添加 "${data.song.title}" 到 "${data.playlist.name}"`)
 }
 
 // 处理创建新歌单事件

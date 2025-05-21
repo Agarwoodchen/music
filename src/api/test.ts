@@ -292,3 +292,34 @@ export const addSomePlaylistsCommentsOrReplyApi = async (
 
 
 
+// 添加歌曲到歌单
+// 添加歌曲到歌单
+export const addSongToPlaylistApi = async (
+  playlistId: number,
+  songId: number,
+  userId: number
+) => {
+  try {
+    const response = await apiClient.post('/api/playlist/add-song', {
+      playlist_id: playlistId,
+      song_id: songId,
+      added_by: userId,
+    });
+
+    if (response.data.message === '歌曲添加成功') {
+      return {
+        success: true,
+        data: response.data,
+      };
+    } else {
+      return { success: false, message: response.data.message };
+    }
+  } catch (error: any) {
+    return {
+      success: false,
+      message: error.response?.data?.message || '添加歌曲失败',
+    };
+  }
+};
+
+

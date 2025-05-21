@@ -86,41 +86,6 @@ const playlists = ref([
     cover: 'https://picsum.photos/150/150?playlist1',
     trackCount: 42,
     playCount: '1.2万'
-  },
-  {
-    id: 2,
-    name: '工作学习背景音乐',
-    cover: 'https://picsum.photos/150/150?playlist2',
-    trackCount: 35,
-    playCount: '8560'
-  },
-  {
-    id: 3,
-    name: '2023年度收藏',
-    cover: 'https://picsum.photos/150/150?playlist3',
-    trackCount: 78,
-    playCount: '2.3万'
-  },
-  {
-    id: 4,
-    name: '深夜安静钢琴曲',
-    cover: 'https://picsum.photos/150/150?playlist4',
-    trackCount: 15,
-    playCount: '5200'
-  },
-  {
-    id: 5,
-    name: '健身动力音乐',
-    cover: 'https://picsum.photos/150/150?playlist5',
-    trackCount: 28,
-    playCount: '1.1万'
-  },
-  {
-    id: 6,
-    name: '经典老歌回忆',
-    cover: 'https://picsum.photos/150/150?playlist6',
-    trackCount: 64,
-    playCount: '1.8万'
   }
 ])
 
@@ -188,6 +153,8 @@ const loadPageData = async () => {
 
     // favoritePlaylists.value = getUserPlaylists.data.favoritedPlaylists
     const createdPlaylists = getUserPlaylists.data.createdPlaylists
+    console.log(createdPlaylists, 111111111);
+
     // handlePlaylistData(createdPlaylists)
     playlists.value = await handlePlaylistData(createdPlaylists);
 
