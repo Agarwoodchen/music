@@ -135,8 +135,8 @@
 import { inject, ref, computed, nextTick, onMounted } from 'vue'
 import { ThemeSymbol } from '../theme-context'
 import { getSomePlaylistsCommentsApi, addSomePlaylistsCommentsOrReplyApi } from '../api/test.ts'
-
-
+import { usePlayerStore } from '../stores/usePlayerStore.ts'
+const player = usePlayerStore()
 import { ElMessage } from 'element-plus'
 import { defineProps } from 'vue'
 import { useApiStore } from '../stores/userApiUrl.ts'
@@ -205,101 +205,7 @@ const sortBy = ref('hot')
 
 // 评论数据
 const comments = ref([
-  {
-    id: 1,
-    user: {
-      id: 2,
-      name: '音乐达人',
-      avatar: ''
-    },
-    content: '这首歌的旋律太棒了，每次听都让人心情愉悦！',
-    time: new Date(Date.now() - 3600000 * 2), // 2小时前
-    likes: 42,
-    liked: false,
-    replies: [
-      {
-        id: 101,
-        user: {
-          id: 3,
-          name: '音乐爱好者',
-          avatar: ''
-        },
-        content: '完全同意！特别是副歌部分，简直让人上瘾',
-        replyTo: '音乐达人',
-        time: new Date(Date.now() - 3600000), // 1小时前
-        likes: 5,
-        liked: false,
 
-      },
-      {
-        id: 101,
-        user: {
-          id: 3,
-          name: '音乐爱好者ssasss',
-          avatar: ''
-        },
-        content: '完sssssss全同意！特别是副歌部分，简直让人上瘾',
-        replyTo: '音乐达人',
-        time: new Date(Date.now() - 3600000), // 1小时前
-        likes: 5,
-        liked: false,
-
-      }
-    ]
-  },
-  {
-    id: 2,
-    user: {
-      id: 4,
-      name: '音乐评论家',
-      avatar: ''
-    },
-    content: '歌词写得很有深度，作曲也很精妙，是近期难得的好作品',
-    time: new Date(Date.now() - 3600000 * 5), // 5小时前
-    likes: 28,
-    liked: true,
-    replies: []
-  },
-  {
-    id: 3,
-    user: {
-      id: 5,
-      name: '普通听众',
-      avatar: ''
-    },
-    content: '第一次听就爱上了，已经单曲循环一整天了！',
-    time: new Date(Date.now() - 3600000 * 8), // 8小时前
-    likes: 15,
-    liked: false,
-    replies: [
-      {
-        id: 102,
-        user: {
-          id: 6,
-          name: '音乐分享者',
-          avatar: ''
-        },
-        content: '我也是！这首歌有种魔力让人停不下来',
-        replyTo: '普通听众',
-        time: new Date(Date.now() - 3600000 * 6), // 6小时前
-        likes: 3,
-        liked: false
-      },
-      {
-        id: 103,
-        user: {
-          id: 7,
-          name: '音乐制作人',
-          avatar: ''
-        },
-        content: '制作团队花了很多心思在这首歌上，很高兴你们喜欢',
-        replyTo: '普通听众',
-        time: new Date(Date.now() - 3600000 * 4), // 4小时前
-        likes: 10,
-        liked: false
-      }
-    ]
-  }
 ])
 
 const sortedComments = computed(() => {
@@ -491,7 +397,6 @@ const loadPageData = async () => {
 onMounted(() => {
   loadPageData()
 })
-
 
 </script>
 
