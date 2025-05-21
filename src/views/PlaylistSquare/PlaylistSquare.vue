@@ -78,7 +78,8 @@
         </div>
       </h2>
       <div class="playlist-grid">
-        <div class="playlist-card" v-for="playlist in filteredPlaylists" :key="playlist.id">
+        <div class="playlist-card" v-for="playlist in filteredPlaylists" :key="playlist.id"
+          @click="viewPlaylist(playlist.id)">
           <div class="cover-container">
             <img :src="playlist.cover" :alt="playlist.name" class="cover-image">
             <div class="play-overlay">

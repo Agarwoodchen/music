@@ -13,9 +13,13 @@
         <div class="playlist-info">
           <div class="playlist-tag">{{ playlist.tag }}</div>
           <h2 class="playlist-title">{{ playlist.title }}</h2>
-          <p class="playlist-creator">
-            <img :src="playlist.creator.avatarUrl" alt="创建者头像" class="creator-avatar">
+          <p class="playlist-creator" v-if="playlist.userId != 0 && playlist.userId != null">
+            <img :src="apiBaseUrl + playlist.creator.avatarUrl" alt="创建者头像" class="creator-avatar">
             <span class="creator-name">{{ playlist.creator.name }}</span>
+          </p>
+          <p class="playlist-creator" v-else>
+            <span class="creator-name">###官方推荐</span>
+
           </p>
           <p class="playlist-desc">{{ playlist.description }}</p>
           <div class="playlist-actions">
@@ -151,6 +155,7 @@ const playlist = ref({
     avatarUrl: 'https://picsum.photos/50/50'
   },
   song_count: 20,
+  userId: 0
 })
 
 // 模拟歌曲数据
@@ -185,7 +190,8 @@ const handlePageData = async (data: any) => {
       name: data.username || '匿名用户',
       avatarUrl: data.avatar_url || 'https://picsum.photos/50/50'
     },
-    song_count: data.song_count
+    song_count: data.song_count,
+    userId: data.user_id
   };
 
   songs.value = (data.songs || []).map((song: any) => ({
