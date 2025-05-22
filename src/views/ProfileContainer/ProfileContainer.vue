@@ -160,6 +160,8 @@ import { getUserFavoriteSongsApi, getUserDetailDataApi, updateUsersDetailDataApi
 import { ElMessage } from 'element-plus'
 import EditProfileModal from '../../components/editProfilePopups.vue'
 import { useApiStore } from '../../stores/userApiUrl.ts'
+import { usePlayerStore } from '../../stores/usePlayerStore.ts'
+const player = usePlayerStore()
 const apiStore = useApiStore()
 const apiBaseUrl = apiStore.apiBaseUrl
 const userJson = localStorage.getItem('user');
@@ -233,6 +235,8 @@ const recentlyPlayed = ref([
 // 方法
 const playSong = (song: any) => {
   console.log('播放歌曲:', song.title)
+  player.changeTrack(song.id)
+
 }
 
 const toggleFavorite = (song: any) => {
