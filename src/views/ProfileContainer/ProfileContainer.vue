@@ -2,7 +2,7 @@
   <Header />
   <div class="profile-container">
     <!-- 用户信息卡片 -->
-    <div class="user-profile-card">
+    <div class="user-profile-card" v-if="!isLoading">
       <div class="user-avatar-container">
         <img :src="user.avatar" class="user-avatar" alt="用户头像">
         <button class="edit-avatar-btn">编辑头像</button>
@@ -25,6 +25,25 @@
           </div>
         </div>
         <button class="edit-profile-btn">编辑资料</button>
+      </div>
+    </div>
+
+    <!-- 骨架屏 -->
+    <div class="user-profile-card skeleton" v-else>
+      <div class="user-avatar-container">
+        <div class="user-avatar skeleton-box"></div>
+        <div class="edit-avatar-btn skeleton-box btn-placeholder"></div>
+      </div>
+      <div class="user-info">
+        <div class="username skeleton-box"></div>
+        <div class="user-bio skeleton-box" style="height: 20px; width: 60%;"></div>
+        <div class="user-stats">
+          <div class="stat-item skeleton-box" v-for="i in 3" :key="i">
+            <div class="stat-number"></div>
+            <div class="stat-label"></div>
+          </div>
+        </div>
+        <div class="edit-profile-btn skeleton-box btn-placeholder"></div>
       </div>
     </div>
 
@@ -127,13 +146,22 @@
       </div>
     </div>
   </div>
+  <div style="width: 100%;height: 5vh;"> </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { inject } from 'vue'
 import { ThemeSymbol } from '../../theme-context'
 import Header from '../../components/header.vue'
+import { getUserFavoriteSongsApi, getUserDetailDataApi } from '../../api/test.ts'
+import { ElMessage } from 'element-plus'
+import { useApiStore } from '../../stores/userApiUrl.ts'
+const apiStore = useApiStore()
+const apiBaseUrl = apiStore.apiBaseUrl
+const userJson = localStorage.getItem('user');
+const userflag = userJson ? JSON.parse(userJson) : null;
+const isLoading = ref(true)
 
 const themeContext = inject(ThemeSymbol)
 
@@ -167,10 +195,10 @@ const user = ref({
 
 // 收藏的歌曲
 const favoriteSongs = ref([
-  { id: 1, title: '夜曲', artist: '周杰伦', cover: 'https://picsum.photos/100/100?song1', duration: '3:45' },
+  { id: 10, title: '夜曲1', artist: '周杰伦', cover: 'https://picsum.photos/100/100?song1', duration: '3:45' },
   { id: 2, title: '七里香', artist: '周杰伦', cover: 'https://picsum.photos/100/100?song2', duration: '4:12' },
   { id: 3, title: '青花瓷', artist: '周杰伦', cover: 'https://picsum.photos/100/100?song3', duration: '3:58' },
-  { id: 4, title: '晴天', artist: '周杰伦', cover: 'https://picsum.photos/100/100?song4', duration: '4:29' }
+  { id: 40, title: '晴天', artist: '周杰伦', cover: 'https://picsum.photos/100/100?song4', duration: '4:29' }
 ])
 
 // 收藏的专辑
@@ -269,6 +297,70 @@ const formatTime = (time: Date) => {
     return `${days}天前`
   }
 }
+
+const handleUserData = (data: any) => {
+  user.value = {
+    username: data.nickname,
+    avatar: apiBaseUrl + data.avatar_url,
+    bio: data.bio,
+    followers: 123,
+    following: 43,
+    playlists: 8
+  }
+}
+
+const formatDuration = (seconds: number): string => {
+  const min = Math.floor(seconds / 60);
+  const sec = seconds % 60;
+  return `${min}:${sec.toString().padStart(2, '0')}`;
+};
+
+const handleUserFavoriteSongs = (data: any) => {
+  favoriteSongs.value = data.map((song: any) => ({
+    id: song.song_id,
+    title: song.song_title_zh,
+    artist: song.artist_name_zh,  // 修复这里 key 写成 artists_name_zh 了
+    cover: apiBaseUrl + song.cover_path,
+    duration: formatDuration(song.duration)  // 格式化秒为 mm:ss
+  }));
+};
+
+
+const loadPageData = async () => {
+  try {
+    // await new Promise(resolve => setTimeout(resolve, 200))
+    const [
+
+      getUserFavoriteSongs,
+      getUserDetailData
+    ] = await Promise.all([
+      getUserFavoriteSongsApi(userflag.id),
+      getUserDetailDataApi(userflag.id)
+    ])
+    handleUserData(getUserDetailData.data)
+    handleUserFavoriteSongs(getUserFavoriteSongs.data)
+    console.log(getUserDetailData);
+
+    if (getUserFavoriteSongs) {
+      isLoading.value = false
+    }
+    console.log(getUserFavoriteSongs);
+
+  } catch (error) {
+    console.error(error)
+    ElMessage.error('请求数据失败')
+  } finally {
+
+  }
+}
+
+onMounted(() => {
+  // console.log(props.albumtId);
+
+  loadPageData()
+})
+
+
 </script>
 
 <style scoped>
@@ -665,6 +757,39 @@ const formatTime = (time: Date) => {
   .album-grid,
   .playlist-grid {
     grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+
+.skeleton-box {
+  background-color: #e0e0e0;
+  border-radius: 4px;
+  animation: pulse 1.5s infinite;
+}
+
+.skeleton .user-avatar {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+}
+
+.btn-placeholder {
+  width: 100px;
+  height: 30px;
+  margin-top: 10px;
+}
+
+@keyframes pulse {
+  0% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0.4;
+  }
+
+  100% {
+    opacity: 1;
   }
 }
 </style>

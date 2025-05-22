@@ -368,4 +368,34 @@ export const toggleFavoritesSongApi = async (user_id: number, song_id: number) =
     };
   }
 };
+// 获取用户收藏歌曲接口
+export const getUserFavoriteSongsApi = async (userId: number) => {
+  try {
+    const res = await apiClient.get(`/api/favorites/songs/${userId}`);
+    return res.data;
+  } catch (error: any) {
+    return {
+      success: false,
+      message: error.response?.data?.message || '获取收藏歌曲失败'
+    };
+  }
+};
+
+// 获取用户信息
+// 获取用户信息
+export const getUserDetailDataApi = async (userId: number) => {
+  try {
+    const res = await apiClient.get(`/api/users/${userId}`);
+    return {
+      success: true,
+      data: res.data
+    };
+  } catch (error: any) {
+    return {
+      success: false,
+      message: error.response?.data?.error || error.message || '获取用户信息失败'
+    };
+  }
+};
+
 
