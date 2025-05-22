@@ -399,3 +399,44 @@ export const getUserDetailDataApi = async (userId: number) => {
 };
 
 
+// 上传头像
+export const uploadUserAvatarApi = async (file: File, userId: number) => {
+  const formData = new FormData();
+  formData.append('avatar', file);
+  formData.append('userId', userId.toString());
+
+  try {
+    const res = await apiClient.post('/upload-avatar', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data'
+      }
+    });
+
+    return {
+      success: true,
+      data: res.data
+    };
+  } catch (error: any) {
+    return {
+      success: false,
+      message: error.response?.data?.error || error.message || '头像上传失败'
+    };
+  }
+};
+
+// 更新用户信息接口
+// 更新用户信息接口
+export const updateUsersDetailDataApi = async (userId: number, payload: any) => {
+  try {
+    const res = await apiClient.put(`/api/updataUsers/${userId}`, payload);
+    return {
+      success: true,
+      data: res.data
+    };
+  } catch (error: any) {
+    return {
+      success: false,
+      message: error.response?.data?.error || error.message || '更新用户信息失败'
+    };
+  }
+};

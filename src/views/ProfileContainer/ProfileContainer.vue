@@ -24,7 +24,7 @@
             <span class="stat-label">歌单</span>
           </div>
         </div>
-        <button class="edit-profile-btn">编辑资料</button>
+        <button class="edit-profile-btn" @click="showEditModal = true">编辑资料</button>
       </div>
     </div>
 
@@ -145,6 +145,8 @@
         </div>
       </div>
     </div>
+    <EditProfileModal v-if="showEditModal" :user-data="currentUser" @close="showEditModal = false"
+      @save="handleSaveProfile" />
   </div>
   <div style="width: 100%;height: 5vh;"> </div>
 </template>
@@ -154,8 +156,9 @@ import { ref, computed, onMounted } from 'vue'
 import { inject } from 'vue'
 import { ThemeSymbol } from '../../theme-context'
 import Header from '../../components/header.vue'
-import { getUserFavoriteSongsApi, getUserDetailDataApi } from '../../api/test.ts'
+import { getUserFavoriteSongsApi, getUserDetailDataApi, updateUsersDetailDataApi } from '../../api/test.ts'
 import { ElMessage } from 'element-plus'
+import EditProfileModal from '../../components/editProfilePopups.vue'
 import { useApiStore } from '../../stores/userApiUrl.ts'
 const apiStore = useApiStore()
 const apiBaseUrl = apiStore.apiBaseUrl
@@ -298,6 +301,46 @@ const formatTime = (time: Date) => {
   }
 }
 
+
+
+const showEditModal = ref(false)
+
+const currentUser = ref({
+  user_id: 1,
+  username: 'musiclover',
+  email: 'user@example.com',
+  avatar_url: 'https://example.com/avatar.jpg',
+  // 其他字段...
+})
+
+const handleSaveProfile = async (updatedData) => {
+  try {
+    let res = await updateUsersDetailDataApi(userflag.id, updatedData)
+    if (res.success) {
+      // console.log('保存成功:', res);
+      loadPageData()
+      ElMessage.success('保存成功')
+    } else {
+      ElMessage.error('保存失败')
+    }
+  } catch (error) {
+    console.error('保存失败:', error)
+  }
+  console.log('保存数据:', updatedData)
+  showEditModal.value = false
+}
+
+// function handleSaveProfile(updatedData) {
+//   // 这里可以调用 API 保存数据，比如 await api.updateUser(updatedData)
+//   try {
+//     let res = await updateUsersDetailDataApi(updatedData)
+//   } catch (error) {
+
+//   }
+//   console.log('保存数据:', updatedData)
+//   showEditModal.value = false
+// }
+
 const handleUserData = (data: any) => {
   user.value = {
     username: data.nickname,
@@ -339,6 +382,8 @@ const loadPageData = async () => {
     ])
     handleUserData(getUserDetailData.data)
     handleUserFavoriteSongs(getUserFavoriteSongs.data)
+    currentUser.value = getUserDetailData.data
+    currentUser.value.avatar_url = apiBaseUrl + getUserDetailData.data.avatar_url
     console.log(getUserDetailData);
 
     if (getUserFavoriteSongs) {
