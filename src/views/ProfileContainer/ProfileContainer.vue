@@ -318,11 +318,21 @@ const currentUser = ref({
 })
 
 const handleSaveProfile = async (updatedData) => {
+  // console.log(updatedData, '更新数据');
+  // console.log(notSeverAddressAvatarUrl.value, updatedData.email, userflag.id, updatedData.username);
+
   try {
     let res = await updateUsersDetailDataApi(userflag.id, updatedData)
+
     if (res.success) {
       // console.log('保存成功:', res);
-      loadPageData()
+      await loadPageData()
+      localStorage.setItem('user', JSON.stringify({
+        avatar_url: notSeverAddressAvatarUrl.value,
+        email: updatedData.email,
+        id: userflag.id,
+        username: updatedData.username
+      }));
       ElMessage.success('保存成功')
     } else {
       ElMessage.error('保存失败')
@@ -372,6 +382,7 @@ const handleUserFavoriteSongs = (data: any) => {
   }));
 };
 
+const notSeverAddressAvatarUrl = ref()
 
 const loadPageData = async () => {
   try {
@@ -384,16 +395,23 @@ const loadPageData = async () => {
       getUserFavoriteSongsApi(userflag.id),
       getUserDetailDataApi(userflag.id)
     ])
-    handleUserData(getUserDetailData.data)
+    const UserDetailData = getUserDetailData.data
+    // console.log(getUserDetailData.data.avatar_url);
+    handleUserData(UserDetailData)
     handleUserFavoriteSongs(getUserFavoriteSongs.data)
-    currentUser.value = getUserDetailData.data
-    currentUser.value.avatar_url = apiBaseUrl + getUserDetailData.data.avatar_url
-    console.log(getUserDetailData);
+    currentUser.value = UserDetailData
+    currentUser.value.avatar_url = UserDetailData.avatar_url
+    notSeverAddressAvatarUrl.value = UserDetailData.avatar_url
+    currentUser.value.avatar_url = apiBaseUrl + currentUser.value.avatar_url
+
+    // console.log(userflag, 'userflag');
+
+    // console.log(getUserDetailData);
 
     if (getUserFavoriteSongs) {
       isLoading.value = false
     }
-    console.log(getUserFavoriteSongs);
+    // console.log(getUserFavoriteSongs);
 
   } catch (error) {
     console.error(error)
