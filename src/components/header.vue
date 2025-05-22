@@ -45,7 +45,7 @@
         <div class="user-dropdown">
           <router-link to="/mine">
             <button class="user-button">
-              <img :src="apiBaseUrl + user.avatar_url" alt="User Avatar" class="avatar-img" />
+              <img :src="apiBaseUrl + userFlag.avatar_url" alt="User Avatar" class="avatar-img" />
             </button>
           </router-link>
           <div class="dropdown-menu">
@@ -61,10 +61,11 @@
 </template>
 
 <script setup lang="ts">
-import { inject, ref } from 'vue'
+import { inject, ref, onMounted } from 'vue'
 import { ThemeSymbol } from '../theme-context'
 import { useRouter } from 'vue-router'
-
+import { ElMessage } from 'element-plus'
+import { getUserDetailDataApi } from '../api/test.ts'
 const router = useRouter()
 const themeContext = inject(ThemeSymbol)
 
@@ -78,7 +79,9 @@ const userJson = localStorage.getItem('user');
 const user = userJson ? JSON.parse(userJson) : null;
 const apiStore = useApiStore()
 const apiBaseUrl = apiStore.apiBaseUrl
-
+const userFlag = ref({
+  avatar_url: ''
+})
 const logout = () => {
   // 清除本地存储中的 token
   localStorage.removeItem('token');
@@ -103,6 +106,38 @@ const scrollNav = (amount: number) => {
     })
   }
 }
+
+const loadPageData = async () => {
+  try {
+    // await new Promise(resolve => setTimeout(resolve, 200))
+    const [
+
+
+      getUserDetailData
+    ] = await Promise.all([
+
+      getUserDetailDataApi(user.id)
+    ])
+
+    userFlag.value = getUserDetailData.data
+    console.log(userFlag.value.avatar_url);
+
+  } catch (error) {
+    console.error(error)
+    ElMessage.error('请求数据失败')
+  } finally {
+
+  }
+}
+
+onMounted(() => {
+  // console.log(props.albumtId);
+  loadPageData()
+})
+
+
+
+
 </script>
 <style scoped>
 /* 头部样式 */
