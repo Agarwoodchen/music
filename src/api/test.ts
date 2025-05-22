@@ -55,28 +55,34 @@ export const getAllAlbumAndSongApi = async (albumId) => {
 
 // 获取指定歌曲详情
 // 获取指定歌曲详情
-export const getDirectSongDetailApi = async (songId: number) => {
+export const getDirectSongDetailApi = async (songId: number, userId: number) => {
   try {
-    const response = await apiClient.get(`/api/songsBySongId/${songId}`);
-    // 这里可以判断返回数据是否合理
-    if (!response.data || response.data.error) {
+    const response = await apiClient.get(`/api/songsBySongId/${songId}`, {
+      params: { userId }
+    });
+
+    const data = response.data;
+
+    if (!data || data.error) {
       return {
         success: false,
-        message: response.data?.error || '未找到歌曲详情'
+        message: data?.error || '未找到歌曲详情'
       };
     }
+
     return {
       success: true,
-      data: response.data
+      data
     };
   } catch (error: any) {
     console.error('获取歌曲详情失败:', error);
     return {
       success: false,
-      message: error.response?.data?.message || error.message || '获取歌曲详情失败'
+      message: error.response?.data?.error || error.message || '获取歌曲详情失败'
     };
   }
 };
+
 
 // 根据用户 ID 获取该用户 自己创建的歌单 以及 收藏的歌单
 export const getUserPlaylistsApi = async (userId: number) => {

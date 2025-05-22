@@ -1,9 +1,11 @@
 // stores/player.ts
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
-import { getDirectSongDetailApi } from '../api/test.ts'
+import { getDirectSongDetailApi, toggleFavoritesSongApi } from '../api/test.ts'
+import { ElMessage } from 'element-plus';
 const storedApiUrl = import.meta.env.VITE_API_TEST_URL || '';
-
+const userJson = localStorage.getItem('user');
+const user = userJson ? JSON.parse(userJson) : null;
 
 
 export const usePlayerStore = defineStore('player', () => {
@@ -25,15 +27,18 @@ export const usePlayerStore = defineStore('player', () => {
     cover: string
     duration: number
     filePath?: string
+    is_favorite: boolean
+
   }
   const currentTrack = ref<Track>({
-    id: 1,
+    id: -1,
     name: '歌曲名称',
     artist: '歌手名称',
     album: '专辑名称',
     cover: 'https://picsum.photos/150/150?artist1',
     duration: 225,
-    filePath: ''
+    filePath: '',
+    is_favorite: false
   })
 
   const currentLyric = ref('这是当前播放的歌词内容...')
@@ -138,7 +143,9 @@ export const usePlayerStore = defineStore('player', () => {
       return null
     }
     try {
-      const response = await getDirectSongDetailApi(id)
+      const response = await getDirectSongDetailApi(id, user.id)
+      console.log(response, 'casascascascsacascsa');
+
       if (!response || !response.success || !response.data || !response.data.song_id) {
         console.error('歌曲数据无效或获取失败', response)
         return null
@@ -151,10 +158,11 @@ export const usePlayerStore = defineStore('player', () => {
         album: song.album_name_zh || song.album_name || `专辑ID: ${song.album_id}`,
         cover: storedApiUrl + song.cover_path || `https://picsum.photos/150/150?random=${song.song_id}`,
         duration: song.duration || 0,
-        filePath: storedApiUrl + song.file_path
+        filePath: storedApiUrl + song.file_path,
+        is_favorite: song.is_favorited === 1 ? true : false
       }
       console.log(currentTrack.value);
-
+      isLiked.value = currentTrack.value.is_favorite
       duration.value = formatDuration(currentTrack.value.duration)
       return song
     } catch (error) {
@@ -164,9 +172,32 @@ export const usePlayerStore = defineStore('player', () => {
   }
 
   // 其他简单开关
-  const toggleLike = () => {
-    isLiked.value = !isLiked.value
-  }
+  const toggleLike = async () => {
+    if (currentTrack.value.id === -1) {
+      ElMessage.error('请先选择歌曲');
+      return;
+    }
+
+    try {
+      const res = await toggleFavoritesSongApi(user.id, currentTrack.value.id);
+      // console.log(res);
+
+      if (res.success) {
+        isLiked.value = res.data.favorited; // 根据接口实际返回更新收藏状态
+
+        if (res.data.favorited) {
+          ElMessage.success('收藏成功');
+        } else {
+          ElMessage.success('已取消收藏');
+        }
+      } else {
+        ElMessage.error(res.message || '操作失败');
+      }
+    } catch (error: any) {
+      ElMessage.error(error?.message || '操作失败');
+    }
+  };
+
   const toggleExpanded = () => {
     isExpanded.value = !isExpanded.value
   }
