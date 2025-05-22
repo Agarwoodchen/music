@@ -11,7 +11,7 @@
  Target Server Version : 80040 (8.0.40)
  File Encoding         : 65001
 
- Date: 20/05/2025 17:38:07
+ Date: 22/05/2025 17:38:49
 */
 
 SET NAMES utf8mb4;
@@ -62,6 +62,36 @@ CREATE TABLE `artists`  (
 ) ENGINE = InnoDB AUTO_INCREMENT = 82 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
+-- Table structure for favorite_songs
+-- ----------------------------
+DROP TABLE IF EXISTS `favorite_songs`;
+CREATE TABLE `favorite_songs`  (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `user_id` int NOT NULL,
+  `song_id` int NOT NULL,
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`) USING BTREE,
+  UNIQUE INDEX `unique_user_song`(`user_id` ASC, `song_id` ASC) USING BTREE,
+  INDEX `fk_favorite_song`(`song_id` ASC) USING BTREE,
+  CONSTRAINT `fk_favorite_song` FOREIGN KEY (`song_id`) REFERENCES `songs` (`id`) ON DELETE CASCADE ON UPDATE RESTRICT,
+  CONSTRAINT `fk_favorite_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`) ON DELETE CASCADE ON UPDATE RESTRICT
+) ENGINE = InnoDB AUTO_INCREMENT = 22 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = Dynamic;
+
+-- ----------------------------
+-- Table structure for playlist_comment_likes
+-- ----------------------------
+DROP TABLE IF EXISTS `playlist_comment_likes`;
+CREATE TABLE `playlist_comment_likes`  (
+  `user_id` int NOT NULL,
+  `comment_id` int NOT NULL,
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`user_id`, `comment_id`) USING BTREE,
+  INDEX `comment_id`(`comment_id` ASC) USING BTREE,
+  CONSTRAINT `playlist_comment_likes_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`) ON DELETE CASCADE ON UPDATE RESTRICT,
+  CONSTRAINT `playlist_comment_likes_ibfk_2` FOREIGN KEY (`comment_id`) REFERENCES `playlist_comments` (`id`) ON DELETE CASCADE ON UPDATE RESTRICT
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = Dynamic;
+
+-- ----------------------------
 -- Table structure for playlist_comments
 -- ----------------------------
 DROP TABLE IF EXISTS `playlist_comments`;
@@ -83,7 +113,7 @@ CREATE TABLE `playlist_comments`  (
   CONSTRAINT `playlist_comments_ibfk_2` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`) ON DELETE CASCADE ON UPDATE RESTRICT,
   CONSTRAINT `fk_playlist_comments_parent` FOREIGN KEY (`parent_id`) REFERENCES `playlist_comments` (`id`) ON DELETE CASCADE ON UPDATE RESTRICT,
   CONSTRAINT `fk_playlist_comments_reply_user` FOREIGN KEY (`reply_to_user_id`) REFERENCES `users` (`user_id`) ON DELETE SET NULL ON UPDATE RESTRICT
-) ENGINE = InnoDB AUTO_INCREMENT = 17 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '歌单评论表' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 34 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '歌单评论表' ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Table structure for playlist_favorites
@@ -138,7 +168,7 @@ CREATE TABLE `playlists`  (
   PRIMARY KEY (`id`) USING BTREE,
   INDEX `user_id`(`user_id` ASC) USING BTREE,
   CONSTRAINT `playlists_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`) ON DELETE SET NULL ON UPDATE RESTRICT
-) ENGINE = InnoDB AUTO_INCREMENT = 18 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '歌单表，存储歌单信息' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 19 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '歌单表，存储歌单信息' ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Table structure for songs

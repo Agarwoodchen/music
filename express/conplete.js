@@ -55,6 +55,109 @@ let db;
   }
 })();
 
+
+// 获取用户详细信息接口
+app.get('/api/users/:id', async (req, res) => {
+  const userId = parseInt(req.params.id, 10);
+
+  if (isNaN(userId)) {
+    return res.status(400).json({ error: '无效的用户 ID' });
+  }
+
+  try {
+    const [rows] = await db.query(`
+      SELECT 
+        u.user_id,
+        u.username,
+        u.email,
+        u.avatar_url,
+        u.created_at,
+
+        up.nickname,
+        up.full_name,
+        up.gender,
+        up.birthdate,
+        up.phone_number,
+        up.address,
+        up.bio
+
+      FROM users u
+      LEFT JOIN user_profiles up ON u.user_id = up.user_id
+      WHERE u.user_id = ?
+    `, [userId]);
+
+    if (rows.length === 0) {
+      return res.status(404).json({ error: '未找到该用户' });
+    }
+    // console.log(rows[0]);
+    res.json(rows[0]);
+  } catch (error) {
+    console.error('查询用户信息失败:', error);
+    res.status(500).json({ error: '服务器错误' });
+  }
+});
+
+// 更新用户信息接口
+app.put('/api/updataUsers/:id', async (req, res) => {
+  const userId = parseInt(req.params.id, 10);
+  if (isNaN(userId)) {
+    return res.status(400).json({ message: '无效的用户ID' });
+  }
+
+  const {
+    username,
+    email,
+    nickname,
+    full_name,
+    gender,
+    birthdate,
+    phone_number,
+    address,
+    bio
+  } = req.body;
+
+  const birthdateValue = birthdate === '' ? null : birthdate;
+
+  try {
+    // 更新 users 表
+    await db.query(
+      'UPDATE users SET username = ?, email = ? WHERE user_id = ?',
+      [username, email, userId]
+    );
+
+    // 查询 user_profiles 是否存在
+    const [rows] = await db.query(
+      'SELECT * FROM user_profiles WHERE user_id = ?',
+      [userId]
+    );
+
+    if (rows.length > 0) {
+      // 更新
+      await db.query(
+        `UPDATE user_profiles 
+         SET nickname = ?, full_name = ?, gender = ?, birthdate = ?, phone_number = ?, address = ?, bio = ?
+         WHERE user_id = ?`,
+        [nickname, full_name, gender, birthdateValue, phone_number, address, bio, userId]
+      );
+    } else {
+      // 插入
+      await db.query(
+        `INSERT INTO user_profiles 
+         (user_id, nickname, full_name, gender, birthdate, phone_number, address, bio)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+        [userId, nickname, full_name, gender, birthdateValue, phone_number, address, bio]
+      );
+    }
+
+    res.json({ success: true, message: '用户信息更新成功' });
+  } catch (error) {
+    console.error('用户信息更新失败:', error);
+    res.status(500).json({ success: false, message: '服务器错误' });
+  }
+});
+
+
+
 // 获取所有用户
 app.get('/users', async (req, res) => {
   try {
@@ -120,24 +223,52 @@ app.post('/login', async (req, res) => {
 });
 
 // 上传头像接口
+// 上传头像接口
+
+// POST /upload-avatar
 app.post('/upload-avatar', upload.single('avatar'), async (req, res) => {
-  const file = req.file;
-  const userId = req.body.userId;
+  const file = req.file
+  const userId = req.body.userId
 
   if (!file || !userId) {
-    return res.status(400).json({ error: '缺少头像或用户ID' });
+    return res.status(400).json({ error: '缺少头像或用户ID' })
   }
 
-  const avatarUrl = `/uploads/avatars/${file.filename}`;
-  const sql = 'UPDATE users SET avatar_url = ? WHERE user_id = ?';
+  const avatarUrl = `/uploads/avatars/${file.filename}`  // 用于数据库
+  const sqlUpdate = 'UPDATE users SET avatar_url = ? WHERE user_id = ?'
+  const sqlSelect = 'SELECT avatar_url FROM users WHERE user_id = ?'
 
   try {
-    await db.query(sql, [avatarUrl, userId]);
-    res.json({ message: '上传成功', avatarUrl });
+    // 1. 查询旧头像地址
+    const [rows] = await db.query(sqlSelect, [userId])
+    const oldAvatarUrl = rows[0]?.avatar_url
+
+    // 2. 更新新头像地址
+    await db.query(sqlUpdate, [avatarUrl, userId])
+
+    // 3. 删除旧头像（如果存在且不是默认头像）
+    if (
+      oldAvatarUrl &&
+      !oldAvatarUrl.includes('default') &&
+      oldAvatarUrl !== avatarUrl
+    ) {
+      // 获取旧文件本地路径
+      const oldFilePath = path.join(process.cwd(), 'server', oldAvatarUrl) // 拼接绝对路径
+      fs.unlink(oldFilePath, (err) => {
+        if (err) {
+          console.warn('删除旧头像失败:', err.message)
+        } else {
+          console.log('旧头像已删除:', oldFilePath)
+        }
+      })
+    }
+
+    res.json({ message: '上传成功', avatarUrl })
   } catch (err) {
-    res.status(500).json({ error: '数据库更新失败' });
+    console.error('上传失败:', err)
+    res.status(500).json({ error: '数据库更新失败' })
   }
-});
+})
 
 // 获取用户头像
 app.get('/user/:id/avatar', async (req, res) => {
@@ -332,8 +463,11 @@ app.get('/api/album/:id', async (req, res) => {
 });
 
 // 获取指定歌曲详情
+// 获取指定歌曲详情，包含是否收藏信息
+// 获取指定歌曲详情，包含是否收藏信息
 app.get('/api/songsBySongId/:id', async (req, res) => {
   const songId = parseInt(req.params.id, 10);
+  const userId = parseInt(req.query.userId, 10); // 从查询参数中获取用户 ID
 
   if (isNaN(songId)) {
     return res.status(400).json({ error: '无效的歌曲 ID' });
@@ -349,33 +483,38 @@ app.get('/api/songsBySongId/:id', async (req, res) => {
           s.duration,
           s.track_number,
           s.created_at AS song_created_at,
-          
+
           al.id AS album_id,
           al.name_zh AS album_name_zh,
           al.name AS album_name,
           al.release_year,
           al.cover_path,
-          
+
           ar.id AS artist_id,
           ar.name_zh AS artist_name_zh,
-          ar.name AS artist_name
+          ar.name AS artist_name,
+
+          CASE WHEN fs.id IS NOT NULL THEN TRUE ELSE FALSE END AS is_favorited
         FROM songs s
         JOIN albums al ON s.album_id = al.id
         JOIN artists ar ON al.artist_id = ar.id
+        LEFT JOIN favorite_songs fs 
+          ON fs.song_id = s.id AND fs.user_id = ?
         WHERE s.id = ?`,
-      [songId]
+      [isNaN(userId) ? 0 : userId, songId]
     );
 
     if (rows.length === 0) {
       return res.status(404).json({ error: '未找到该歌曲' });
     }
-
+    // console.log(rows[0]);
     res.json(rows[0]);
   } catch (error) {
     console.error('查询歌曲失败:', error);
     res.status(500).json({ error: '服务器错误' });
   }
 });
+
 
 //根据用户 ID 获取该用户 自己创建的歌单 以及 收藏的歌单
 app.get('/api/user/:userId/playlists', async (req, res) => {
@@ -387,25 +526,41 @@ app.get('/api/user/:userId/playlists', async (req, res) => {
   try {
     // 获取自己创建的歌单，包含歌曲数
     const [createdPlaylists] = await db.execute(
-      `SELECT p.*, 'created' AS source, COUNT(s.id) AS song_count
-       FROM playlists p
-       LEFT JOIN songs s ON s.album_id = p.id
-       WHERE p.user_id = ?
-       GROUP BY p.id`,
+      `SELECT 
+         p.*, 
+         'created' AS source, 
+         COUNT(ps.song_id) AS song_count
+       FROM 
+         playlists p
+       LEFT JOIN 
+         playlist_songs ps ON ps.playlist_id = p.id
+       WHERE 
+         p.user_id = ?
+       GROUP BY 
+         p.id`,
       [userId]
     );
 
     // 获取收藏的歌单（排除自己创建的），包含歌曲数
     const [favoritedPlaylists] = await db.execute(
-      `SELECT p.*, 'favorited' AS source, COUNT(s.id) AS song_count
-       FROM playlists p
-       INNER JOIN playlist_favorites f ON p.id = f.playlist_id
-       LEFT JOIN songs s ON s.album_id = p.id
-       WHERE f.user_id = ? AND (p.user_id IS NULL OR p.user_id != ?)
-       GROUP BY p.id`,
+      `SELECT 
+         p.*, 
+         'favorited' AS source, 
+         COUNT(ps.song_id) AS song_count
+       FROM 
+         playlists p
+       INNER JOIN 
+         playlist_favorites f ON p.id = f.playlist_id
+       LEFT JOIN 
+         playlist_songs ps ON ps.playlist_id = p.id
+       WHERE 
+         f.user_id = ? 
+         AND (p.user_id IS NULL OR p.user_id != ?)
+       GROUP BY 
+         p.id`,
       [userId, userId]
     );
-
+    // console.log(createdPlaylists);
     res.json({
       createdPlaylists,
       favoritedPlaylists
@@ -643,6 +798,39 @@ app.get('/api/playlistsDetails/:id', async (req, res) => {
   }
 });
 
+// 添加歌曲到歌单的接口
+app.post('/api/playlist/add-song', async (req, res) => {
+  // console.log(req.body);
+  const { playlist_id, song_id, added_by } = req.body;
+
+  // 参数校验
+  if (!playlist_id || !song_id || !added_by) {
+    return res.status(400).json({ message: '缺少必要参数' });
+  }
+
+  try {
+    // 判断是否已经存在该歌曲在歌单中
+    const [existing] = await db.execute(
+      'SELECT 1 FROM playlist_songs WHERE playlist_id = ? AND song_id = ?',
+      [playlist_id, song_id]
+    );
+
+    if (existing.length > 0) {
+      return res.status(409).json({ message: '该歌曲已在歌单中' });
+    }
+
+    // 插入记录
+    await db.execute(
+      'INSERT INTO playlist_songs (playlist_id, song_id, added_by) VALUES (?, ?, ?)',
+      [playlist_id, song_id, added_by]
+    );
+
+    res.status(200).json({ message: '歌曲添加成功' });
+  } catch (err) {
+    console.error('添加歌曲失败:', err);
+    res.status(500).json({ message: '服务器内部错误' });
+  }
+});
 
 
 
@@ -652,25 +840,39 @@ app.get('/api/playlistsDetails/:id', async (req, res) => {
 
 
 // 获取某个歌单下的评论
+// 获取某个歌单下的评论，带点赞状态
 app.get('/api/playlists/:playlistId/comments', async (req, res) => {
+  // console.log(req.params);
   const { playlistId } = req.params;
+  const userId = parseInt(req.query.user_id); // 当前用户 ID
+
+  if (!playlistId || isNaN(userId)) {
+    return res.status(400).json({ message: '缺少参数' });
+  }
 
   try {
     const [rows] = await db.query(
-      `SELECT c.*, u.username, u.avatar_url
-   FROM playlist_comments c
-   JOIN users u ON c.user_id = u.user_id
-   WHERE c.playlist_id = ?
-   ORDER BY c.created_at ASC`,
-      [playlistId]
+      `SELECT 
+         c.*, 
+         u.username, 
+         u.avatar_url,
+         EXISTS (
+           SELECT 1 FROM playlist_comment_likes l 
+           WHERE l.comment_id = c.id AND l.user_id = ?
+         ) AS liked
+       FROM playlist_comments c
+       JOIN users u ON c.user_id = u.user_id
+       WHERE c.playlist_id = ?
+       ORDER BY c.created_at ASC`,
+      [userId, playlistId]
     );
-
 
     // 构建树状结构
     const commentMap = {};
     const result = [];
 
     rows.forEach(row => {
+      row.liked = !!row.liked; // 确保是布尔类型
       row.replies = [];
       commentMap[row.id] = row;
     });
@@ -691,6 +893,7 @@ app.get('/api/playlists/:playlistId/comments', async (req, res) => {
     res.status(500).json({ success: false, message: '获取评论失败' });
   }
 });
+
 
 
 
@@ -750,50 +953,181 @@ app.delete('/api/comments/:id', async (req, res) => {
   }
 });
 
-//点赞评论（可选）
-app.post('/api/comments/:id/like', async (req, res) => {
-  const { id } = req.params;
-  const { user_id } = req.body;
+// 点赞或取消点赞评论
+app.post('/api/comment/like', async (req, res) => {
+  const { user_id, comment_id } = req.body;
 
-  if (!user_id) {
-    return res.status(400).json({ success: false, message: '缺少用户ID' });
+  if (!user_id || !comment_id) {
+    return res.status(400).json({ message: '缺少必要参数' });
   }
 
   try {
-    // 判断是否已点过赞
-    const [rows] = await db.query(
-      `SELECT * FROM playlist_comment_likes WHERE comment_id = ? AND user_id = ?`,
-      [id, user_id]
+    // 检查是否已点赞
+    const [existing] = await db.execute(
+      'SELECT 1 FROM playlist_comment_likes WHERE user_id = ? AND comment_id = ?',
+      [user_id, comment_id]
     );
 
-    if (rows.length > 0) {
-      // 取消点赞
-      await db.query(
-        `DELETE FROM playlist_comment_likes WHERE comment_id = ? AND user_id = ?`,
-        [id, user_id]
+    if (existing.length > 0) {
+      // 已点赞，则取消点赞
+      await db.execute(
+        'DELETE FROM playlist_comment_likes WHERE user_id = ? AND comment_id = ?',
+        [user_id, comment_id]
       );
-      await db.query(
-        `UPDATE playlist_comments SET likes_count = likes_count - 1 WHERE id = ?`,
-        [id]
+      await db.execute(
+        'UPDATE playlist_comments SET likes_count = likes_count - 1 WHERE id = ? AND likes_count > 0',
+        [comment_id]
       );
-      res.json({ success: true, liked: false });
+      return res.json({ success: true, liked: false });
     } else {
-      // 点赞
-      await db.query(
-        `INSERT INTO playlist_comment_likes (comment_id, user_id) VALUES (?, ?)`,
-        [id, user_id]
+      // 未点赞，则执行点赞
+      await db.execute(
+        'INSERT INTO playlist_comment_likes (user_id, comment_id) VALUES (?, ?)',
+        [user_id, comment_id]
       );
-      await db.query(
-        `UPDATE playlist_comments SET likes_count = likes_count + 1 WHERE id = ?`,
-        [id]
+      await db.execute(
+        'UPDATE playlist_comments SET likes_count = likes_count + 1 WHERE id = ?',
+        [comment_id]
       );
-      res.json({ success: true, liked: true });
+      return res.json({ success: true, liked: true });
     }
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ success: false, message: '点赞失败' });
+    console.error('点赞失败:', err);
+    return res.status(500).json({ message: '服务器错误' });
   }
 });
+
+
+
+
+// 添加收藏歌曲接口
+// 切换收藏歌曲接口（已收藏则取消收藏，未收藏则添加）
+app.post('/api/favorites/song', async (req, res) => {
+  const { user_id, song_id } = req.body;
+
+  if (!user_id || !song_id) {
+    return res.status(400).json({ message: 'Missing user_id or song_id' });
+  }
+
+  try {
+    // 检查是否已收藏
+    const [existing] = await db.execute(
+      'SELECT id FROM favorite_songs WHERE user_id = ? AND song_id = ?',
+      [user_id, song_id]
+    );
+
+    if (existing.length > 0) {
+      // 已收藏，执行取消收藏
+      await db.execute(
+        'DELETE FROM favorite_songs WHERE user_id = ? AND song_id = ?',
+        [user_id, song_id]
+      );
+      return res.status(200).json({ message: '取消收藏成功', favorited: false });
+    } else {
+      // 未收藏，执行添加
+      await db.execute(
+        'INSERT INTO favorite_songs (user_id, song_id) VALUES (?, ?)',
+        [user_id, song_id]
+      );
+      return res.status(201).json({ message: '收藏成功', favorited: true });
+    }
+  } catch (error) {
+    console.error('收藏操作失败:', error);
+    res.status(500).json({ message: '服务器内部错误' });
+  }
+});
+
+
+// 获取指定用户的所有收藏歌曲
+app.get('/api/favorites/songs/:userId', async (req, res) => {
+  const userId = parseInt(req.params.userId, 10);
+
+  if (isNaN(userId)) {
+    return res.status(400).json({ message: '无效的用户 ID' });
+  }
+
+  try {
+    const [rows] = await db.query(
+      `SELECT 
+          s.id AS song_id,
+          s.title_zh AS song_title_zh,
+          s.title AS song_title,
+          s.file_path,
+          s.duration,
+          s.track_number,
+          s.created_at AS song_created_at,
+
+          al.id AS album_id,
+          al.name_zh AS album_name_zh,
+          al.name AS album_name,
+          al.release_year,
+          al.cover_path,
+
+          ar.id AS artist_id,
+          ar.name_zh AS artist_name_zh,
+          ar.name AS artist_name,
+
+          fs.created_at AS favorited_at
+        FROM favorite_songs fs
+        JOIN songs s ON fs.song_id = s.id
+        JOIN albums al ON s.album_id = al.id
+        JOIN artists ar ON al.artist_id = ar.id
+        WHERE fs.user_id = ?
+        ORDER BY fs.created_at DESC`,
+      [userId]
+    );
+
+    res.json({ success: true, data: rows });
+  } catch (error) {
+    console.error('获取收藏歌曲失败:', error);
+    res.status(500).json({ success: false, message: '服务器错误' });
+  }
+});
+
+// 获取用户收藏的歌单
+app.get('/api/users/:userId/favorite-playlists', async (req, res) => {
+  const { userId } = req.params;
+  try {
+    const [rows] = await db.execute(`
+      SELECT 
+        p.*,
+        COUNT(ps.song_id) AS song_count,
+        u.user_id AS creator_user_id,
+        u.username AS creator_username,
+        u.avatar_url AS creator_avatar,
+        up.nickname AS creator_nickname,
+        up.full_name AS creator_full_name
+      FROM 
+        playlist_favorites pf
+      JOIN 
+        playlists p ON pf.playlist_id = p.id
+      LEFT JOIN 
+        playlist_songs ps ON p.id = ps.playlist_id
+      LEFT JOIN 
+        users u ON p.user_id = u.user_id
+      LEFT JOIN 
+        user_profiles up ON u.user_id = up.user_id
+      WHERE 
+        pf.user_id = ?
+      GROUP BY 
+        p.id
+    `, [userId]);
+
+    res.json({
+      success: true,
+      data: rows
+    });
+  } catch (error) {
+    console.error('获取收藏歌单失败:', error);
+    res.status(500).json({
+      success: false,
+      message: '服务器错误，无法获取收藏的歌单'
+    });
+  }
+});
+
+
+
 
 
 // Excel 上传占位接口
