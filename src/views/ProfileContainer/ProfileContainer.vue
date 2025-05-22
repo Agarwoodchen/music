@@ -50,7 +50,7 @@
     <!-- 标签导航 -->
     <div class="tab-nav">
       <button v-for="tab in tabs" :key="tab.id" :class="['tab-btn', { active: activeTab === tab.id }]"
-        @click="activeTab = tab.id">
+        @click="ToggleNavigation(tab.id)">
         {{ tab.label }}
       </button>
     </div>
@@ -156,7 +156,12 @@ import { ref, computed, onMounted } from 'vue'
 import { inject } from 'vue'
 import { ThemeSymbol } from '../../theme-context'
 import Header from '../../components/header.vue'
-import { getUserFavoriteSongsApi, getUserDetailDataApi, updateUsersDetailDataApi } from '../../api/test.ts'
+import {
+  getUserFavoriteSongsApi,
+  getUserDetailDataApi,
+  updateUsersDetailDataApi,
+  getUserFavoritePlaylistsApi
+} from '../../api/test.ts'
 import { ElMessage } from 'element-plus'
 import EditProfileModal from '../../components/editProfilePopups.vue'
 import { useApiStore } from '../../stores/userApiUrl.ts'
@@ -417,6 +422,37 @@ const loadPageData = async () => {
     console.error(error)
     ElMessage.error('请求数据失败')
   } finally {
+
+  }
+}
+
+const ToggleNavigation = async (tabId) => {
+  activeTab.value = tabId
+  console.log(activeTab.value);
+  if (activeTab.value === 'favorite-playlists') {
+    await getFavoritePlaylists()
+  }
+}
+
+const getFavoritePlaylists = async () => {
+  try {
+    let res = await getUserFavoritePlaylistsApi(userflag.id)
+    if (res.success) {
+      console.log(res.data);
+      favoritePlaylists.value = res.data.map((item) => ({
+        id: item.id,
+        name: item.name,
+        creator: item.creator_username === null ? '官方推荐' : item.creator_username,
+        cover: apiBaseUrl + item.cover_url,
+        trackCount: item.song_count,
+        playCount: item.play_count
+      }))
+    } else {
+      console.log(res);
+
+    }
+  } catch (error) {
+    console.log(error);
 
   }
 }
