@@ -741,6 +741,8 @@ app.get('/api/playlists', async (req, res) => {
 // 获取歌单详情
 app.get('/api/playlistsDetails/:id', async (req, res) => {
   const playlistId = parseInt(req.params.id);
+  const userId = parseInt(req.query.user_id); // 从 query 参数获取 user_id
+
   if (isNaN(playlistId)) {
     return res.status(400).json({ success: false, message: '无效的歌单ID' });
   }
@@ -763,32 +765,43 @@ app.get('/api/playlistsDetails/:id', async (req, res) => {
       return res.status(404).json({ success: false, message: '歌单未找到' });
     }
 
-    // 获取歌单中的歌曲及其歌手、专辑信息
+    const playlistInfo = playlistInfoResult[0];
+
+    // 获取歌曲详情
     const [songsResult] = await db.execute(
       `SELECT 
-     s.*, 
-     a.name AS album_name,
-     a.name_zh AS album_name_zh,
-     a.cover_path AS album_cover,
-     ar.id AS artist_id,
-     ar.name AS artist_name,
-     ar.name_zh AS artist_name_zh,
-     ar.avatar_url AS artist_avatar
-   FROM playlist_songs ps
-   JOIN songs s ON ps.song_id = s.id
-   JOIN albums a ON s.album_id = a.id
-   JOIN artists ar ON a.artist_id = ar.id
-   WHERE ps.playlist_id = ?
-   ORDER BY ps.order_index ASC`,
+         s.*, 
+         a.name AS album_name,
+         a.name_zh AS album_name_zh,
+         a.cover_path AS album_cover,
+         ar.id AS artist_id,
+         ar.name AS artist_name,
+         ar.name_zh AS artist_name_zh,
+         ar.avatar_url AS artist_avatar
+       FROM playlist_songs ps
+       JOIN songs s ON ps.song_id = s.id
+       JOIN albums a ON s.album_id = a.id
+       JOIN artists ar ON a.artist_id = ar.id
+       WHERE ps.playlist_id = ?
+       ORDER BY ps.order_index ASC`,
       [playlistId]
     );
 
+    let isFavorited = false;
+    if (!isNaN(userId)) {
+      const [favoriteResult] = await db.execute(
+        'SELECT 1 FROM playlist_favorites WHERE user_id = ? AND playlist_id = ?',
+        [userId, playlistId]
+      );
+      isFavorited = favoriteResult.length > 0;
+    }
 
     res.json({
       success: true,
       data: {
-        ...playlistInfoResult[0],
-        songs: songsResult
+        ...playlistInfo,
+        songs: songsResult,
+        is_favorited: isFavorited // 添加收藏状态字段
       }
     });
 
@@ -797,6 +810,7 @@ app.get('/api/playlistsDetails/:id', async (req, res) => {
     res.status(500).json({ success: false, message: '服务器错误' });
   }
 });
+
 
 // 添加歌曲到歌单的接口
 app.post('/api/playlist/add-song', async (req, res) => {
@@ -1125,6 +1139,42 @@ app.get('/api/users/:userId/favorite-playlists', async (req, res) => {
     });
   }
 });
+// 收藏/取消收藏切换
+app.post('/api/addFavoritePlaylist', async (req, res) => {
+  const { user_id, playlist_id } = req.body;
+
+  if (!user_id || !playlist_id) {
+    return res.status(400).json({ message: '缺少 user_id 或 playlist_id' });
+  }
+
+  try {
+    // 查询是否已经收藏
+    const [existing] = await db.execute(
+      'SELECT 1 FROM playlist_favorites WHERE user_id = ? AND playlist_id = ?',
+      [user_id, playlist_id]
+    );
+
+    if (existing.length > 0) {
+      // 已收藏 -> 取消收藏
+      await db.execute(
+        'DELETE FROM playlist_favorites WHERE user_id = ? AND playlist_id = ?',
+        [user_id, playlist_id]
+      );
+      return res.status(200).json({ message: '取消收藏成功', favorited: false });
+    } else {
+      // 未收藏 -> 添加收藏
+      await db.execute(
+        'INSERT INTO playlist_favorites (user_id, playlist_id) VALUES (?, ?)',
+        [user_id, playlist_id]
+      );
+      return res.status(201).json({ message: '收藏成功', favorited: true });
+    }
+  } catch (err) {
+    console.error('操作失败:', err);
+    res.status(500).json({ message: '服务器错误' });
+  }
+});
+
 
 
 
