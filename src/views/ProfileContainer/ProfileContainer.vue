@@ -338,7 +338,12 @@ const handleSaveProfile = async (updatedData) => {
         id: userflag.id,
         username: updatedData.username
       }));
+      setTimeout(() => {
+        window.location.reload();
+      }, 100);
       ElMessage.success('保存成功')
+
+
     } else {
       ElMessage.error('保存失败')
     }
