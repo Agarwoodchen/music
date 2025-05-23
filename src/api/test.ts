@@ -225,9 +225,11 @@ export const getAllPlaylistsApi = async (page, pageSize) => {
 
 // 获取歌单详情
 // 获取歌单详情（包含歌曲信息和用户信息）
-export const getPlaylistsDetailsApi = async (playlistId: number) => {
+export const getPlaylistsDetailsApi = async (playlistId: number, userId?: number) => {
   try {
-    const response = await apiClient.get(`/api/playlistsDetails/${playlistId}`);
+    const response = await apiClient.get(`/api/playlistsDetails/${playlistId}`, {
+      params: userId ? { user_id: userId } : {}
+    });
 
     if (response.data.success) {
       return {
@@ -244,6 +246,7 @@ export const getPlaylistsDetailsApi = async (playlistId: number) => {
     };
   }
 };
+
 
 // 获取某个歌单下的评论
 export const getSomePlaylistsCommentsApi = async (
@@ -468,3 +471,28 @@ export const getUserFavoritePlaylistsApi = async (userId: number) => {
     };
   }
 };
+
+
+
+// 根据用户id和歌单id添加歌单进收藏api
+// 添加收藏歌单
+export const addFavoritePlaylistApi = async (userId: number, playlistId: number) => {
+  try {
+    const response = await apiClient.post('/api/addFavoritePlaylist', {
+      user_id: userId,
+      playlist_id: playlistId
+    });
+
+    return {
+      success: true,
+      message: response.data.message || '收藏成功'
+    };
+  } catch (error: any) {
+    console.error('添加收藏失败:', error);
+    return {
+      success: false,
+      message: error.response?.data?.message || error.message || '添加收藏失败'
+    };
+  }
+};
+

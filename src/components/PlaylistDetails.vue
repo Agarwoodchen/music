@@ -38,7 +38,8 @@
             </button>
 
             <!-- 收藏 -->
-            <button class="collect-btn">
+            <button :class="playlist.is_favorited ? 'collect-btn collect-btn_ed' : 'collect-btn '"
+              @click="addCollectPlaylist">
               <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-width="2"
                 viewBox="0 0 24 24" width="20" height="20">
                 <path stroke-linecap="round" stroke-linejoin="round"
@@ -145,7 +146,7 @@
 import { inject, ref, onMounted } from 'vue'
 import { ThemeSymbol } from '../theme-context'
 import Header from '../components/header.vue'
-import { getPlaylistsDetailsApi } from '../api/test.ts'
+import { getPlaylistsDetailsApi, addFavoritePlaylistApi } from '../api/test.ts'
 import BackComo from '../components/backComo.vue'
 import CommentsSection from '../components/commentsSection.vue'
 import { ElMessage } from 'element-plus'
@@ -162,8 +163,9 @@ const props = defineProps({
     required: true
   }
 })
-
-console.log(props.playlistId);
+const userJson = localStorage.getItem('user');
+const user = userJson ? JSON.parse(userJson) :
+  console.log(props.playlistId);
 
 const themeContext = inject(ThemeSymbol)
 
@@ -185,7 +187,8 @@ const playlist = ref({
     avatarUrl: 'https://picsum.photos/50/50'
   },
   song_count: 20,
-  userId: 0
+  userId: 0,
+  is_favorited: false
 })
 
 // 模拟歌曲数据
@@ -221,7 +224,8 @@ const handlePageData = async (data: any) => {
       avatarUrl: data.avatar_url || 'https://picsum.photos/50/50'
     },
     song_count: data.song_count,
-    userId: data.user_id
+    userId: data.user_id,
+    is_favorited: data.is_favorited
   };
 
   songs.value = (data.songs || []).map((song: any) => ({
@@ -241,12 +245,35 @@ function formatDuration(seconds: number): string {
   return `${mins}:${secs.toString().padStart(2, '0')}`;
 }
 
+
+
+const addCollectPlaylist = async () => {
+  try {
+    const response = await addFavoritePlaylistApi(user.id, props.playlistId);
+    console.log(response);
+
+    if (response.success) {
+      // const message = response.favorited ? '收藏成功' : '取消收藏成功';
+      ElMessage.success(response.message);
+      playlist.value.is_favorited = !playlist.value.is_favorited
+      // 可选：更新本地收藏状态（用于按钮图标或状态刷新）
+      // isFavorited.value = response.favorited;
+    } else {
+      ElMessage.error(`操作失败：${response.message}`);
+    }
+  } catch (error) {
+    console.error('请求失败:', error);
+    ElMessage.error('网络错误，请稍后重试');
+  }
+};
+
+
 const loadPageData = async () => {
   try {
     const [
       getPlaylistsDetails
     ] = await Promise.all([
-      getPlaylistsDetailsApi(props.playlistId)
+      getPlaylistsDetailsApi(props.playlistId, user.id)
     ])
     console.log(getPlaylistsDetails, 'getPlaylistsDetails');
     handlePageData(getPlaylistsDetails.data)
@@ -409,7 +436,7 @@ onMounted(() => {
 }
 
 .play-btn:hover {
-  background-color: #3e8e41;
+  background-color: var(--hover-bg);
   transform: scale(1.05);
 }
 
@@ -418,6 +445,12 @@ onMounted(() => {
   background-color: var(--card-bg);
   color: var(--text-color);
   border: 1px solid var(--border-color);
+  /* background: #000; */
+}
+
+.collect-btn_ed {
+  background-color: var(--favorite-bg);
+  color: var(--favorite-text-color);
 }
 
 .collect-btn:hover,

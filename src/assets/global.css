@@ -25,6 +25,11 @@
   /* 滚动条 */
   --scrollbar-bg: #f4f7fb;
   --scrollbar-thumb: #d1d8e0;
+
+   /* 收藏按钮 */
+  /* 收藏按钮 */
+  --favorite-bg: #7969b9;         /* 优雅紫色 */
+  --favorite-text-color: #ffffff; /* 白色文字 */
 }
 
 html.dark {
@@ -54,6 +59,11 @@ html.dark {
   /* 滚动条 */
   --scrollbar-bg: #374151;
   --scrollbar-thumb: #4a5568;
+
+
+     /* 收藏按钮 */
+   --favorite-bg: #7969b9;         /* 深一点的琥珀色用于暗色背景 */
+  --favorite-text-color: #fff;
 }
 
 
